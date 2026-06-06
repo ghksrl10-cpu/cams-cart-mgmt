@@ -237,10 +237,16 @@ function setSyncStatus(msg){ document.getElementById('syncStatus').textContent=m
 
 /* ===== 전체 로드 ===== */
 async function loadAll(){
-  const [cS,iS,mS] = await Promise.all([
-    db.collection('carts').get(),
-    db.collection('inspections').orderBy('createdAt','desc').limit(300).get(),
-    db.collection('movements').orderBy('createdAt','desc').limit(300).get()
+  const _timeout = new Promise((_,rej)=>setTimeout(()=>rej(new Error(
+    'Firestore 연결 시간 초과 (15초)<br><small style="font-weight:400;font-size:14px">네트워크를 확인하고 새로고침 해주세요<br>계속 안 되면 Firebase 콘솔 → Firestore 규칙을 확인하세요</small>'
+  )),15000));
+  const [cS,iS,mS] = await Promise.race([
+    Promise.all([
+      db.collection('carts').get(),
+      db.collection('inspections').orderBy('createdAt','desc').limit(300).get(),
+      db.collection('movements').orderBy('createdAt','desc').limit(300).get()
+    ]),
+    _timeout
   ]);
   CARTS={};
   cS.forEach(d=>{ CARTS[d.id]={...d.data(),_docId:d.id}; });
