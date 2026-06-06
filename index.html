@@ -491,7 +491,7 @@ function renderDash(){
       }
     });
   }
-}
+  } catch(chartErr){ console.warn('차트 생성 오류(Chart.js 미로드 등):', chartErr); }
 }
 
 /* ======================================================
