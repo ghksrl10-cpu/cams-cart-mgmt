@@ -1318,13 +1318,17 @@ async function seedCarts(force){
 /* ===== 초기화 ===== */
 window.addEventListener('DOMContentLoaded', async ()=>{
   if(!fbInit()) return;
+  // 앱 즉시 표시 (로딩 화면 없음)
+  hideOverlay();
+  render('dash');
+  setSyncStatus('동기화 중…');
   try{
     await loadAll();
-    hideOverlay();
     setSyncStatus('동기화 완료 ✅');
-    render('dash');
+    render(curPage);
   } catch(e){
-    showOverlay('데이터 로드 오류:<br>'+e.message+'<br><small style="font-size:13px;font-weight:400;margin-top:8px;display:block">Firebase 설정 및 Firestore 규칙을 확인하세요<br>설치방법.txt 참고</small>');
+    setSyncStatus('⚠️ 로드 실패 — 새로고침 해주세요');
+    console.error('loadAll 오류:', e);
   }
 });
 </script>
