@@ -1326,14 +1326,18 @@ async function seedCarts(force){
 /* ===== 초기화 ===== */
 window.addEventListener('DOMContentLoaded', async ()=>{
   if(!fbInit()) return;
-  // 앱 즉시 표시 (로딩 화면 없음)
   hideOverlay();
-  render('dash');
-  setSyncStatus('동기화 중…');
+  setSyncStatus('동기화 중…'); // render() 전에 먼저 상태 표시
+  try{ render('dash'); }
+  catch(e){
+    console.error('render 오류:', e);
+    document.getElementById('pg-dash').innerHTML=
+      '<div style="padding:28px;color:#ef4444;font-size:15px">⚠️ 화면 로드 오류<br><small style="font-weight:400;color:#9ca3af">'+e.message+'</small><br><br><button class="btn pri" onclick="location.reload()">🔄 새로고침</button></div>';
+  }
   try{
     await loadAll();
     setSyncStatus('동기화 완료 ✅');
-    render(curPage);
+    try{ render(curPage); }catch(e2){ console.error('render2 오류:', e2); }
   } catch(e){
     setSyncStatus('⚠️ 로드 실패 — 새로고침 해주세요');
     console.error('loadAll 오류:', e);
