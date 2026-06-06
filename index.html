@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>대차 관리 시스템 | 캠스</title>
+<style>
+:root{
+  --bd:#2a2d35;--line:#23262f;--hd:#1a1d24;--hd2:#20232b;
+  --blue:#3b82f6;--blue2:#2563eb;
+  --ok:#22c55e;--okbg:#052e16;--ng:#ef4444;--ngbg:#2d0a0a;
+  --warn:#f59e0b;--warnbg:#1c1a05;
+  --mut:#9ca3af;--ink:#f1f5f9;
+  --side:#13151c;--bg:#0f1117;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:"맑은 고딕","Malgun Gothic",system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:15px}
+a{color:inherit}
+
+/* ===== 레이아웃 ===== */
+.app{display:flex;min-height:100vh}
+.side{width:230px;background:var(--side);border-right:1px solid var(--bd);position:fixed;top:0;bottom:0;left:0;display:flex;flex-direction:column;z-index:30}
+.brand{display:flex;align-items:center;gap:10px;padding:18px 16px;border-bottom:1px solid var(--line)}
+.brand .logo{width:44px;height:44px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:26px}
+.brand b{font-size:15px}.brand small{display:block;color:var(--mut);font-size:12px;margin-top:1px}
+.nav{padding:10px;flex:1}
+.nav-item{display:flex;align-items:center;gap:10px;padding:12px 13px;border-radius:9px;cursor:pointer;color:#94a3b8;font-weight:600;font-size:15px;margin-bottom:3px;transition:background .15s}
+.nav-item:hover{background:#20232b}
+.nav-item.active{background:var(--blue);color:#fff}
+.nav-item .ic{width:22px;text-align:center;font-size:17px}
+.side-foot{padding:14px 16px;border-top:1px solid var(--line);font-size:12px;color:var(--mut)}
+
+.main{flex:1;margin-left:230px;padding:20px 24px 70px;max-width:1400px}
+.page-h{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:4px 0 18px}
+.page-h h1{font-size:22px;margin:0}
+.grow{flex:1}
+
+/* ===== 버튼 ===== */
+.btn{padding:9px 14px;border:1px solid var(--bd);border-radius:9px;background:#20232b;cursor:pointer;font-size:14px;font-weight:600;color:#e2e8f0;transition:background .15s}
+.btn:hover{background:#2a2d35}
+.btn.pri{background:var(--blue);color:#fff;border-color:var(--blue)}.btn.pri:hover{background:var(--blue2)}
+.btn.ok{background:var(--okbg);color:var(--ok);border-color:var(--ok)}
+.btn.danger{background:var(--ngbg);color:var(--ng);border-color:var(--ng)}
+.btn.sm{padding:5px 10px;font-size:12px}
+
+/* ===== 카드 ===== */
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.card{background:#1a1d24;border:1px solid var(--bd);border-radius:14px;padding:16px 18px;cursor:pointer;transition:border-color .15s}
+.card:hover{border-color:var(--blue)}
+.card .ic{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px;margin-bottom:10px}
+.card .num{font-size:30px;font-weight:800;line-height:1}.card .lab{color:var(--mut);font-size:13px;margin-top:6px}
+.ic.b{background:#dbeafe;color:#2563eb}.ic.g{background:var(--okbg);color:var(--ok)}
+.ic.r{background:var(--ngbg);color:var(--ng)}.ic.y{background:#fef3c7;color:#b45309}
+
+/* ===== 테이블 ===== */
+.tbl-wrap{background:#1a1d24;border:1px solid var(--bd);border-radius:12px;overflow:hidden;overflow-x:auto}
+.tbl-wrap table{border-collapse:collapse;width:100%;min-width:560px}
+.tbl-wrap th{background:var(--hd);padding:11px 13px;text-align:left;font-weight:700;font-size:13px;border-bottom:1px solid var(--bd);white-space:nowrap}
+.tbl-wrap td{padding:10px 13px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:middle}
+.tbl-wrap tr:last-child td{border-bottom:0}
+.tbl-wrap tr:hover td{background:#1e2533}
+
+/* ===== 폼 ===== */
+.form-card{background:#1a1d24;border:1px solid var(--bd);border-radius:12px;padding:18px 20px;margin-bottom:14px}
+.form-card h3{margin:0 0 14px;font-size:15px;font-weight:800}
+.frow{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px}
+.frow:last-child{margin-bottom:0}
+.fg{display:flex;flex-direction:column;gap:5px;flex:1;min-width:150px}
+.fg label{font-size:12px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.4px}
+.fg input,.fg select,.fg textarea{padding:9px 10px;border:1px solid var(--bd);border-radius:8px;font-size:14px;background:#0f1117;color:#f1f5f9;font-family:inherit;transition:border-color .15s}
+.fg textarea{resize:vertical;min-height:72px}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--blue)}
+
+/* ===== 점검 항목 ===== */
+.check-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+.check-item{background:var(--hd2);border:2px solid var(--bd);border-radius:10px;padding:13px 14px;transition:border-color .2s,background .2s}
+.check-item .ci-label{font-weight:700;font-size:14px;margin-bottom:9px;display:flex;align-items:center;gap:6px}
+.check-item select{width:100%;padding:8px 10px;border:1px solid var(--bd);border-radius:7px;font-size:14px;background:#0f1117;color:#f1f5f9}
+.check-item.ok-item{border-color:var(--ok);background:var(--okbg)}
+.check-item.ng-item{border-color:var(--ng);background:var(--ngbg)}
+
+/* ===== 배지 ===== */
+.badge{font-size:12px;font-weight:700;padding:3px 9px;border-radius:20px;display:inline-block;white-space:nowrap}
+.badge.st-ok{background:var(--okbg);color:var(--ok)}
+.badge.st-ng{background:var(--ngbg);color:var(--ng)}
+.badge.st-warn{background:var(--warnbg);color:var(--warn)}
+.badge.st-blue{background:#dbeafe;color:var(--blue2)}
+.badge.st-mut{background:#1e2533;color:var(--mut)}
+
+/* ===== 사진 ===== */
+.photo-list{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.ph{position:relative}
+.ph img{width:100px;height:75px;object-fit:cover;border:1px solid var(--bd);border-radius:7px;cursor:pointer;display:block}
+.ph .del{position:absolute;top:-7px;right:-7px;background:#fff;border:1px solid #ccc;border-radius:50%;width:22px;height:22px;cursor:pointer;font-weight:700;color:var(--ng);font-size:13px;display:flex;align-items:center;justify-content:center;line-height:1}
+.ph-save{position:absolute;bottom:-7px;right:-7px;background:#1e3a5f;border:1px solid var(--blue);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:12px;text-decoration:none;line-height:1}
+
+/* ===== 활동 목록 ===== */
+.act-list{display:flex;flex-direction:column;gap:6px}
+.act-item{display:flex;align-items:flex-start;gap:10px;background:#1a1d24;border:1px solid var(--bd);border-radius:9px;padding:11px 13px}
+.act-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.act-dot.insp{background:var(--blue)}.act-dot.move{background:var(--ok)}.act-dot.issue{background:var(--ng)}
+.act-txt{font-size:13px;line-height:1.4}.act-time{font-size:12px;color:var(--mut);margin-top:2px}
+
+/* ===== 검색창 ===== */
+.search-bar{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+.search-bar input{flex:1;padding:9px 12px;border:1px solid var(--bd);border-radius:9px;font-size:14px;background:#1a1d24;color:#f1f5f9}
+.search-bar input:focus{outline:none;border-color:var(--blue)}
+
+/* ===== 탭 ===== */
+.tabs{display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap}
+.tab{padding:9px 18px;border:1px solid var(--bd);background:#1a1d24;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;color:#cbd5e1;transition:background .15s}
+.tab.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+
+/* ===== 빈 상태 ===== */
+.empty{text-align:center;padding:48px 20px;color:var(--mut);font-size:14px}
+/* ===== 붙여넣기 존 ===== */
+.paste-zone{min-height:44px;border:2px dashed var(--bd);border-radius:8px;padding:8px;margin-top:8px;transition:border-color .2s}
+.paste-zone:hover{border-color:var(--blue)}
+/* ===== 대차 그룹 헤더 ===== */
+.cart-grp-hd{padding:6px 10px 4px;font-size:11px;font-weight:800;color:var(--blue);text-transform:uppercase;letter-spacing:.6px;border-top:1px solid var(--bd);margin-top:4px}
+.cart-grp-hd:first-child{margin-top:0;border-top:0}
+
+/* ===== 오버레이 ===== */
+#overlay{position:fixed;inset:0;background:rgba(10,12,18,.97);display:flex;align-items:center;justify-content:center;text-align:center;font-size:17px;font-weight:700;color:#f1f5f9;z-index:80;padding:20px;line-height:1.8}
+
+/* ===== 모달 ===== */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{background:#1a1d24;border:1px solid var(--bd);border-radius:14px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto}
+.modal-h{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--bd);position:sticky;top:0;background:#1a1d24;z-index:1}
+.modal-h h3{margin:0;font-size:16px}
+.modal-body{padding:20px}
+.modal-foot{padding:12px 20px;border-top:1px solid var(--bd);display:flex;gap:8px;justify-content:flex-end;position:sticky;bottom:0;background:#1a1d24}
+
+/* ===== 2열 그리드 ===== */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+/* ===== 모바일 ===== */
+.hamb{display:none}
+.scrim{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:25}
+.scrim.show{display:block}
+@media(max-width:820px){
+  .side{transform:translateX(-100%);transition:.25s;box-shadow:0 0 30px rgba(0,0,0,.2)}
+  .side.open{transform:translateX(0)}
+  .main{margin-left:0;padding:14px 14px 70px}
+  .hamb{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border:1px solid var(--bd);border-radius:9px;background:#1a1d24;font-size:20px;cursor:pointer}
+  .cards{grid-template-columns:repeat(2,1fr)}
+  .check-grid{grid-template-columns:1fr}
+  .two-col{grid-template-columns:1fr}
+}
+@media print{
+  .side,.hamb,.btn,#overlay{display:none!important}
+  .main{margin:0;padding:10px}
+}
+</style>
+</head>
+<body>
+<div id="overlay">불러오는 중…</div>
+<div class="scrim" id="scrim" onclick="closeNav()"></div>
+
+<div class="app">
+  <!-- 사이드바 -->
+  <aside class="side" id="side">
+    <div class="brand">
+      <div class="logo">
+        <svg viewBox="0 0 100 100" width="46" height="46" xmlns="http://www.w3.org/2000/svg">
+          <defs><clipPath id="cc"><circle cx="50" cy="50" r="49"/></clipPath></defs>
+          <circle cx="50" cy="50" r="49" fill="#111"/>
+          <rect x="0" y="36" width="100" height="28" fill="#dd0000" clip-path="url(#cc)"/>
+          <text x="91" y="58" text-anchor="end" fill="white"
+            font-family="Arial Black,Impact,sans-serif"
+            font-weight="900" font-size="24" letter-spacing="-1">AMS</text>
+          <path d="M 81 19 A 44 44 0 1 0 81 81" fill="none" stroke="#1414cc" stroke-width="15" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div><b>대차 관리 시스템</b><small>주식회사 캠스</small><small>생산팀 조립 · 김환기PM</small></div>
+    </div>
+    <nav class="nav">
+      <div class="nav-item active" id="nav-dash" onclick="go('dash')"><span class="ic">📊</span>메인</div>
+      <div class="nav-item" id="nav-carts" onclick="go('carts')"><span class="ic">🚛</span>대차 목록</div>
+      <div class="nav-item" id="nav-insp" onclick="go('insp')"><span class="ic">🔍</span>점검 기록</div>
+      <div class="nav-item" id="nav-move" onclick="go('move')"><span class="ic">📦</span>입출고</div>
+    </nav>
+    <div class="side-foot" id="syncStatus">동기화 대기…</div>
+  </aside>
+
+  <!-- 메인 -->
+  <main class="main" id="main">
+    <div id="pg-dash"></div>
+    <div id="pg-carts" style="display:none"></div>
+    <div id="pg-insp" style="display:none"></div>
+    <div id="pg-move" style="display:none"></div>
+  </main>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<!-- Firebase (Firestore만 사용 — 결제 불필요) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<script>
+/* ===================================================================
+   Firebase 설정 — Firebase 콘솔에서 복사해 아래에 붙여넣기
+   =================================================================== */
+const firebaseConfig = {
+  apiKey:            "AIzaSyCLvsQvj7kYmDOVJzU6RfiPPnAom8C-Nt0",
+  authDomain:        "cams-cart-mgmt.firebaseapp.com",
+  projectId:         "cams-cart-mgmt",
+  storageBucket:     "cams-cart-mgmt.firebasestorage.app",
+  messagingSenderId: "184214532683",
+  appId:             "1:184214532683:web:05060772f39427d80713ce"
+};
+/* =================================================================== */
+
+let db = null;
+let _charts = {};
+
+/* ===== 메모리 상태 ===== */
+let CARTS = {};       // cartId → {id, name, location, status, memo, ...}
+let INSPECTIONS = []; // [{id, cartId, date, inspector, checks, result, memo, photos}]
+let MOVEMENTS  = [];  // [{id, cartId, date, type, from, to, qty, who, memo}]
+
+const STATUS_CLS = {'정상운용':'st-ok','점검대기':'st-warn','수리중':'st-ng','폐기대기':'st-mut'};
+
+/* ===== Firebase 초기화 ===== */
+function fbInit(){
+  if(firebaseConfig.apiKey.startsWith('여기에')){
+    showOverlay('⚠️ Firebase 설정이 비어 있습니다.<br>index.html 의 firebaseConfig 를 채워주세요.<br><small style="font-size:14px;font-weight:400">설치방법.txt 를 참고하세요</small>');
+    return false;
+  }
+  try{ firebase.initializeApp(firebaseConfig); db=firebase.firestore(); return true; }
+  catch(e){ showOverlay('Firebase 연결 오류:<br>'+e.message); return false; }
+}
+function showOverlay(html){ const o=document.getElementById('overlay'); o.innerHTML=html; o.style.display='flex'; }
+function hideOverlay(){ document.getElementById('overlay').style.display='none'; }
+function setSyncStatus(msg){ document.getElementById('syncStatus').textContent=msg; }
+
+/* ===== 전체 로드 ===== */
+async function loadAll(){
+  const [cS,iS,mS] = await Promise.all([
+    db.collection('carts').get(),
+    db.collection('inspections').orderBy('createdAt','desc').limit(300).get(),
+    db.collection('movements').orderBy('createdAt','desc').limit(300).get()
+  ]);
+  CARTS={};
+  cS.forEach(d=>{ CARTS[d.id]={...d.data(),_docId:d.id}; });
+  INSPECTIONS=[]; iS.forEach(d=>INSPECTIONS.push({id:d.id,...d.data()}));
+  MOVEMENTS=[];   mS.forEach(d=>MOVEMENTS.push({id:d.id,...d.data()}));
+}
+
+/* ===== 사진 압축 ===== */
+function compressImage(file,maxDim,q){
+  return new Promise((res,rej)=>{
+    const r=new FileReader();
+    r.onload=()=>{
+      const img=new Image();
+      img.onload=()=>{
+        let w=img.width,h=img.height;
+        if(w>=h&&w>maxDim){h=Math.round(h*maxDim/w);w=maxDim;}
+        else if(h>w&&h>maxDim){w=Math.round(w*maxDim/h);h=maxDim;}
+        const cv=document.createElement('canvas');cv.width=w;cv.height=h;
+        cv.getContext('2d').drawImage(img,0,0,w,h);
+        res(cv.toDataURL('image/jpeg',q));
+      };
+      img.onerror=rej; img.src=r.result;
+    };
+    r.onerror=rej; r.readAsDataURL(file);
+  });
+}
+
+/* ===== 날짜 ===== */
+function today(){ const d=new Date(); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function pad(n){ return String(n).padStart(2,'0'); }
+function cartName(id){ const c=CARTS[id]; return c?(c.name?`${id} — ${c.name}`:id):id; }
+function cartLabel(id){ const c=CARTS[id]; return c?(c.name||id):id; }
+
+/* ===== 네비게이션 ===== */
+let curPage='dash';
+function go(page){
+  document.getElementById('nav-'+curPage).classList.remove('active');
+  document.getElementById('pg-'+curPage).style.display='none';
+  curPage=page;
+  document.getElementById('nav-'+page).classList.add('active');
+  document.getElementById('pg-'+page).style.display='';
+  closeNav();
+  render(page);
+}
+function toggleNav(){ const s=document.getElementById('side'); s.classList.toggle('open'); document.getElementById('scrim').classList.toggle('show'); }
+function closeNav(){ document.getElementById('side').classList.remove('open'); document.getElementById('scrim').classList.remove('show'); }
+
+function render(page){
+  ({dash:renderDash,carts:renderCarts,insp:renderInsp,move:renderMove}[page]||renderDash)();
+}
+
+/* ======================================================
+   📊 대시보드
+   ====================================================== */
+function renderDash(){
+  // 기존 차트 제거
+  Object.values(_charts).forEach(c=>{ try{c.destroy();}catch(e){} });
+  _charts={};
+
+  const total  = Object.keys(CARTS).length;
+  const cList  = Object.values(CARTS);
+  const st정상  = cList.filter(c=>c.status==='정상운용').length;
+  const st점검  = cList.filter(c=>c.status==='점검대기').length;
+  const st수리  = cList.filter(c=>c.status==='수리중').length;
+  const st폐기  = cList.filter(c=>c.status==='폐기대기').length;
+  const need   = st점검 + st수리;
+
+  // 라인별 현황
+  const lineKeys  = ['1LINE','2LINE','3LINE'];
+  const lineLabel = ['1라인','2라인','3라인'];
+  const lNormal   = lineKeys.map(l=>cList.filter(c=>c.location===l&&c.status==='정상운용').length);
+  const lIssue    = lineKeys.map(l=>cList.filter(c=>c.location===l&&c.status!=='정상운용').length);
+
+  // 최근 10일 점검 추이
+  const tLabels=[],tOK=[],tNG=[];
+  for(let i=9;i>=0;i--){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const ds=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+    tLabels.push(pad(d.getMonth()+1)+'/'+pad(d.getDate()));
+    tOK.push(INSPECTIONS.filter(r=>r.date===ds&&r.result==='OK').length);
+    tNG.push(INSPECTIONS.filter(r=>r.date===ds&&r.result!=='OK').length);
+  }
+
+  // 최근 활동
+  const acts=[
+    ...INSPECTIONS.slice(0,10).map(r=>({type:'insp',txt:`[점검] <b>${r.cartId}</b> — ${r.result==='OK'?'✅ OK':'❌ NG'}${r.inspector?' ('+r.inspector+')':''}`,time:r.date||''})),
+    ...MOVEMENTS.slice(0,10).map(r=>({type:'move',txt:`[${r.type}] <b>${r.cartId}</b>${r.from&&r.to?' ('+r.from+' → '+r.to+')':''}`,time:r.date||''})),
+  ].sort((a,b)=>b.time.localeCompare(a.time)).slice(0,10);
+
+  document.getElementById('pg-dash').innerHTML=`
+<div class="page-h">
+  <button class="hamb" onclick="toggleNav()">☰</button>
+  <h1>📊 메인</h1>
+  <div class="grow"></div>
+  <button class="btn pri" onclick="refreshAll()">🔄 새로고침</button>
+  ${total < SEED_TOTAL ? `<button class="btn" style="background:var(--warnbg);color:var(--warn);border-color:var(--warn)" onclick="seedCarts()">🚛 대차 ${SEED_TOTAL}대 일괄 등록</button>` : ''}
+</div>
+
+<!-- 요약 카드 3개 -->
+<div class="cards" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">
+  <div class="card" onclick="go('carts')"><div class="ic b">🚛</div><div class="num">${total}</div><div class="lab">총 대차 수</div></div>
+  <div class="card" onclick="go('carts')"><div class="ic g">✅</div><div class="num">${st정상}</div><div class="lab">정상 운용</div></div>
+  <div class="card" onclick="go('insp')"><div class="ic ${need>0?'r':'g'}">${need>0?'🔧':'✅'}</div><div class="num">${need}</div><div class="lab">점검 · 수리 필요</div></div>
+</div>
+
+<!-- 차트 2열 -->
+<div class="two-col" style="margin-bottom:16px">
+  <div style="background:#1a1d24;border:1px solid var(--bd);border-radius:12px;padding:16px 18px">
+    <div style="font-size:13px;font-weight:800;color:var(--mut);margin-bottom:14px">🥧 대차 상태 분포</div>
+    <div style="position:relative;height:200px"><canvas id="chartStatus"></canvas></div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;justify-content:center">
+      ${[['정상운용','#22c55e',st정상],['점검대기','#f59e0b',st점검],['수리중','#ef4444',st수리],['폐기대기','#6b7280',st폐기]]
+        .map(([l,c,n])=>`<span style="font-size:12px;display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:50%;background:${c};display:inline-block"></span>${l} <b>${n}</b></span>`).join('')}
+    </div>
+  </div>
+  <div style="background:#1a1d24;border:1px solid var(--bd);border-radius:12px;padding:16px 18px">
+    <div style="font-size:13px;font-weight:800;color:var(--mut);margin-bottom:14px">📊 라인별 현황</div>
+    <div style="position:relative;height:200px"><canvas id="chartLine"></canvas></div>
+  </div>
+</div>
+
+<!-- 점검 추이 -->
+<div style="background:#1a1d24;border:1px solid var(--bd);border-radius:12px;padding:16px 18px;margin-bottom:16px">
+  <div style="font-size:13px;font-weight:800;color:var(--mut);margin-bottom:14px">📈 최근 10일 점검 결과</div>
+  <div style="position:relative;height:140px"><canvas id="chartTrend"></canvas></div>
+</div>
+
+<!-- 최근 활동 -->
+<div>
+  <div style="font-weight:800;margin-bottom:8px;font-size:14px">최근 활동</div>
+  <div class="act-list">
+    ${acts.length===0?'<div class="empty" style="padding:20px">활동 없음</div>':
+      acts.map(a=>`<div class="act-item"><div class="act-dot ${a.type}"></div><div><div class="act-txt">${a.txt}</div><div class="act-time">${a.time}</div></div></div>`).join('')}
+  </div>
+</div>`;
+
+  // ── Chart.js 생성 ──────────────────────────────
+  const gridColor='rgba(255,255,255,0.06)';
+  const tickColor='#9ca3af';
+  const legendCfg={labels:{color:tickColor,boxWidth:11,padding:10,font:{size:12}}};
+
+  // 도넛 — 상태 분포
+  const c1=document.getElementById('chartStatus')?.getContext('2d');
+  if(c1&&total>0){
+    _charts.status=new Chart(c1,{
+      type:'doughnut',
+      data:{
+        labels:['정상운용','점검대기','수리중','폐기대기'],
+        datasets:[{data:[st정상,st점검,st수리,st폐기],backgroundColor:['#22c55e','#f59e0b','#ef4444','#6b7280'],borderColor:'#1a1d24',borderWidth:3,hoverOffset:6}]
+      },
+      options:{responsive:true,maintainAspectRatio:false,cutout:'68%',
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed}대 (${Math.round(ctx.parsed/total*100)}%)`}}}
+      }
+    });
+  }
+
+  // 가로 바 — 라인별
+  const c2=document.getElementById('chartLine')?.getContext('2d');
+  if(c2){
+    _charts.line=new Chart(c2,{
+      type:'bar',
+      data:{
+        labels:lineLabel,
+        datasets:[
+          {label:'정상운용',data:lNormal,backgroundColor:'#22c55e',borderRadius:4,stack:'s'},
+          {label:'점검·수리',data:lIssue,backgroundColor:'#ef4444',borderRadius:4,stack:'s'}
+        ]
+      },
+      options:{responsive:true,maintainAspectRatio:false,
+        scales:{
+          x:{stacked:true,ticks:{color:tickColor},grid:{color:gridColor}},
+          y:{stacked:true,ticks:{color:tickColor,precision:0},grid:{color:gridColor}}
+        },
+        plugins:{legend:legendCfg}
+      }
+    });
+  }
+
+  // 바 — 점검 추이
+  const c3=document.getElementById('chartTrend')?.getContext('2d');
+  if(c3){
+    _charts.trend=new Chart(c3,{
+      type:'bar',
+      data:{
+        labels:tLabels,
+        datasets:[
+          {label:'OK',data:tOK,backgroundColor:'rgba(34,197,94,0.75)',borderRadius:3,stack:'s'},
+          {label:'NG',data:tNG,backgroundColor:'rgba(239,68,68,0.75)',borderRadius:3,stack:'s'}
+        ]
+      },
+      options:{responsive:true,maintainAspectRatio:false,
+        scales:{
+          x:{ticks:{color:tickColor,font:{size:11}},grid:{display:false}},
+          y:{ticks:{color:tickColor,precision:0},grid:{color:gridColor},beginAtZero:true}
+        },
+        plugins:{legend:legendCfg}
+      }
+    });
+  }
+}
+}
+
+/* ======================================================
+   🚛 대차 목록
+   ====================================================== */
+let cartSearch='';
+function renderCarts(){
+  const list=Object.values(CARTS).filter(c=>{
+    if(!cartSearch) return true;
+    const q=cartSearch.toLowerCase();
+    return (c.id||'').toLowerCase().includes(q)||(c.name||'').toLowerCase().includes(q)||(c.location||'').toLowerCase().includes(q);
+  }).sort((a,b)=>(a.id||'').localeCompare(b.id||''));
+
+  document.getElementById('pg-carts').innerHTML=`
+<div class="page-h">
+  <button class="hamb" onclick="toggleNav()">☰</button>
+  <h1>🚛 대차 목록</h1>
+  <div class="grow"></div>
+  ${Object.keys(CARTS).length < SEED_TOTAL ? `<button class="btn" style="background:var(--warnbg);color:var(--warn);border-color:var(--warn)" onclick="seedCarts()">🚛 251대 일괄 등록</button>` : ''}
+  <button class="btn" style="background:var(--ngbg);color:var(--ng);border-color:var(--ng)" onclick="reseedCarts()">🔄 번호 재등록</button>
+  <button class="btn pri" onclick="openCartModal(null)">+ 대차 등록</button>
+</div>
+<div class="search-bar">
+  <input id="cartSearchInput" placeholder="관리번호 · 이름 · 위치 검색…" value="${esc(cartSearch)}" oninput="cartSearch=this.value;renderCarts()">
+</div>
+<div class="tbl-wrap">
+  <table>
+    <thead><tr>
+      <th>관리번호</th><th>이름/설명</th><th>현재 위치</th><th>상태</th><th>메모</th><th>최근 점검</th><th>조작</th>
+    </tr></thead>
+    <tbody>
+    ${list.length===0?'<tr><td colspan="7"><div class="empty">등록된 대차가 없습니다. 먼저 대차를 등록하세요.</div></td></tr>':
+      (()=>{
+        let rows=''; let lastGrp='';
+        list.forEach(c=>{
+          const parts=c.id.split('-');
+          const grpKey=parts.length>=3?parts.slice(0,-1).join('-'):parts[0];
+          if(grpKey!==lastGrp){
+            lastGrp=grpKey;
+            const grpLabel=SEED_GROUPS.find(g=>g.prefix===grpKey)?.name||grpKey;
+            rows+=`<tr><td colspan="7" style="background:var(--hd);padding:7px 13px;font-size:12px;font-weight:800;color:var(--blue);letter-spacing:.5px">${grpLabel} <span style="color:var(--mut);font-weight:400">(${list.filter(x=>x.id.startsWith(grpKey+'-')).length}대)</span></td></tr>`;
+          }
+          const last=INSPECTIONS.filter(i=>i.cartId===c.id).sort((a,b)=>b.date.localeCompare(a.date))[0];
+          rows+=`<tr>
+            <td><b>${c.id}</b></td>
+            <td>${c.name||'—'}</td>
+            <td>${c.location||'—'}</td>
+            <td><span class="badge ${STATUS_CLS[c.status]||'st-mut'}">${c.status||'미설정'}</span></td>
+            <td style="color:var(--mut)">${c.memo||'—'}</td>
+            <td>${last?`${last.date} <span class="badge ${last.result==='OK'?'st-ok':'st-ng'}">${last.result}</span>`:'—'}</td>
+            <td style="white-space:nowrap">
+              <button class="btn sm" onclick="openCartModal('${c.id}')">수정</button>
+              <button class="btn sm danger" style="margin-left:4px" onclick="deleteCart('${c.id}')">삭제</button>
+            </td>
+          </tr>`;
+        });
+        return rows;
+      })()}
+    </tbody>
+  </table>
+</div>`;
+  // 검색창 포커스 유지
+  const si=document.getElementById('cartSearchInput');
+  if(si){ si.focus(); si.setSelectionRange(si.value.length,si.value.length); }
+}
+
+function openCartModal(id){
+  const c=id?CARTS[id]:{};
+  document.body.insertAdjacentHTML('beforeend',`
+<div class="modal-bg" id="cartModal">
+  <div class="modal">
+    <div class="modal-h"><h3>${id?'대차 수정':'대차 등록'}</h3><button class="btn" onclick="closeModal('cartModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="frow">
+        <div class="fg"><label>관리번호 *</label><input id="cm_id" value="${esc(c.id||'')}" placeholder="예: A-001, 대차-01" ${id?'readonly':''}></div>
+        <div class="fg"><label>이름/설명</label><input id="cm_name" value="${esc(c.name||'')}" placeholder="예: FRT 피킹대차"></div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label>현재 위치</label>
+          <select id="cm_loc">${['1LINE','2LINE','창고','수리실','기타'].map(l=>`<option${(c.location||'1LINE')===l?' selected':''}>${l}</option>`).join('')}</select>
+        </div>
+        <div class="fg"><label>상태</label>
+          <select id="cm_status">${['정상운용','점검대기','수리중','폐기대기'].map(s=>`<option${(c.status||'정상운용')===s?' selected':''}>${s}</option>`).join('')}</select>
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label>메모</label><textarea id="cm_memo">${esc(c.memo||'')}</textarea></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('cartModal')">취소</button>
+      <button class="btn pri" onclick="saveCart('${id||''}')">저장</button>
+    </div>
+  </div>
+</div>`);
+}
+
+async function saveCart(id){
+  const newId=document.getElementById('cm_id').value.trim();
+  if(!newId){ alert('관리번호를 입력하세요'); return; }
+  const data={
+    id:newId,
+    name:document.getElementById('cm_name').value.trim(),
+    location:document.getElementById('cm_loc').value,
+    status:document.getElementById('cm_status').value,
+    memo:document.getElementById('cm_memo').value.trim(),
+    updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+  };
+  if(!id) data.createdAt=firebase.firestore.FieldValue.serverTimestamp();
+  try{
+    await db.collection('carts').doc(newId).set(data,{merge:true});
+    CARTS[newId]={...(CARTS[newId]||{}), ...data, _docId:newId};
+    closeModal('cartModal'); setSyncStatus('저장됨 ✅'); renderCarts();
+  } catch(e){ alert('저장 오류: '+e.message); }
+}
+
+async function deleteCart(id){
+  if(!confirm(`대차 [${id}] 를 삭제하시겠습니까?\n(점검·입출고·이슈 기록은 남습니다)`)) return;
+  try{
+    await db.collection('carts').doc(id).delete();
+    delete CARTS[id]; setSyncStatus('삭제됨'); renderCarts();
+  } catch(e){ alert('삭제 오류: '+e.message); }
+}
+
+/* ======================================================
+   🔍 점검 기록
+   ====================================================== */
+let inspTab='form';
+let inspPhotos=[];
+
+function renderInsp(){
+  document.getElementById('pg-insp').innerHTML=`
+<div class="page-h">
+  <button class="hamb" onclick="toggleNav()">☰</button>
+  <h1>🔍 점검 기록</h1>
+</div>
+<div class="tabs">
+  <div class="tab${inspTab==='form'?' active':''}" onclick="inspTab='form';renderInsp()">📝 점검 입력</div>
+  <div class="tab${inspTab==='hist'?' active':''}" onclick="inspTab='hist';renderInsp()">📋 점검 이력</div>
+</div>
+${inspTab==='form' ? buildInspForm() : buildInspHist()}`;
+}
+
+function buildInspForm(){
+  const carts=Object.values(CARTS).sort((a,b)=>(a.id||'').localeCompare(b.id||''));
+  const groupBtns=BTN_GROUPS.map((g,i)=>`<button class="btn" style="font-size:12px;padding:5px 10px" onclick="selectGroup(${i})">${g.label}</button>`).join('');
+  // 그룹별로 나눠서 헤더 표시
+  let cartRows='';
+  carts.forEach(c=>{
+    cartRows+=`
+    <label class="cart-chk-row" data-id="${c.id}" data-name="${(c.name||'').toLowerCase()} ${c.id.toLowerCase()}">
+      <input type="checkbox" class="cart-chk" value="${c.id}" onchange="updateSelCount()">
+      <span class="cart-chk-id">${c.id}</span>
+      <span class="cart-chk-loc">${c.location||''}</span>
+    </label>`;
+  });
+  return `
+<style>
+.cart-chk-row{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:7px;cursor:pointer;transition:background .1s}
+.cart-chk-row:hover{background:#20283a}
+.cart-chk-row input{width:16px;height:16px;accent-color:var(--blue);cursor:pointer;flex-shrink:0}
+.cart-chk-id{font-weight:700;font-size:13px;min-width:90px}
+.cart-chk-name{font-size:13px;color:var(--mut);flex:1}
+.cart-chk-loc{font-size:12px;color:#3b82f6;min-width:50px;text-align:right}
+.cart-chk-row.selected{background:#1e2a3a}
+</style>
+<div class="form-card">
+  <h3>점검 정보</h3>
+  <div class="frow">
+    <div class="fg"><label>점검일 *</label><input type="date" id="insp_date" value="${today()}"></div>
+    <div class="fg"><label>점검자</label><input id="insp_who" placeholder="이름"></div>
+  </div>
+</div>
+<div class="form-card">
+  <h3>대차 선택 <span id="selCount" style="color:var(--blue);font-size:14px;font-weight:700;margin-left:6px">0대 선택</span></h3>
+  <!-- 검색 + 전체선택/해제 -->
+  <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+    <input id="cartFilterInp" placeholder="🔍 번호·이름 검색…" style="flex:1;min-width:160px;padding:8px 10px;border:1px solid var(--bd);border-radius:8px;font-size:14px;background:#0f1117;color:#f1f5f9" oninput="filterCartChk(this.value)">
+    <button class="btn ok" style="font-size:12px;padding:6px 12px" onclick="selectAllCartChk(true)">전체 선택</button>
+    <button class="btn danger" style="font-size:12px;padding:6px 12px" onclick="selectAllCartChk(false)">전체 해제</button>
+  </div>
+  <!-- 그룹 빠른 선택 -->
+  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
+    <span style="font-size:12px;color:var(--mut);align-self:center">그룹:</span>
+    ${groupBtns}
+  </div>
+  <!-- 대차 체크리스트 -->
+  <div id="cartChkList" style="max-height:220px;overflow-y:auto;border:1px solid var(--bd);border-radius:8px;padding:4px">
+    ${cartRows}
+  </div>
+</div>
+<div class="form-card">
+  <h3>점검 항목 <span style="font-size:12px;font-weight:400;color:var(--mut)">(이상 있으면 자동으로 NG 처리)</span></h3>
+  <div class="check-grid">
+    ${mkCheckItem('wheels','🛞 바퀴(캐스터)',['정상','마모','파손','교체필요'],'정상')}
+    ${mkCheckItem('frame','🔩 프레임/용접부',['정상','이상있음'],'정상')}
+    ${mkCheckItem('shoba','🔧 쇼바',['정상','이상있음'],'정상')}
+    ${mkCheckItem('fixtures','📦 적재/고정장치',['정상','이상있음'],'정상')}
+    ${mkCheckItem('clean','🧹 청소/이물질',['청결','이물질있음'],'청결')}
+    <div class="check-item" id="ci_replace" style="display:flex;flex-direction:column;justify-content:space-between">
+      <div class="ci-label">🔧 교체 완료</div>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-top:4px">
+        <input type="checkbox" id="chk_replace" style="width:22px;height:22px;accent-color:var(--blue)" onchange="onReplaceChange(this.checked)">
+        <span id="chk_replace_lbl" style="font-size:14px;font-weight:700;color:var(--mut)">미완료</span>
+      </label>
+    </div>
+  </div>
+  <!-- 점검 완료 -->
+  <div style="margin-top:10px">
+    <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:15px;font-weight:700;background:var(--hd2);border:2px solid var(--bd);border-radius:10px;padding:12px 14px" id="ci_done_wrap">
+      <input type="checkbox" id="chk_done" style="width:20px;height:20px;accent-color:var(--ok)" onchange="onDoneChange(this.checked)">
+      <span>✅ 점검 완료</span>
+      <span id="chk_done_lbl" style="font-size:13px;font-weight:400;color:var(--mut);margin-left:4px">— 미완료</span>
+    </label>
+  </div>
+</div>
+<div class="form-card">
+  <h3>메모 · 사진</h3>
+  <div class="frow"><div class="fg"><label>메모</label><textarea id="insp_memo" placeholder="특이사항, 조치 내용…"></textarea></div></div>
+  <input type="file" id="insp_file" accept="image/*" multiple style="display:none" onchange="addPhotos(this,'insp')">
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+    <button class="btn" onclick="document.getElementById('insp_file').click()">📷 사진 추가 (카메라 · 앨범)</button>
+    <span style="font-size:12px;color:var(--mut)">또는 Ctrl+V · 드래그&드롭</span>
+  </div>
+  <div class="paste-zone" id="insp_pasteZone" ondragover="event.preventDefault()" ondrop="dropPhoto(event,'insp')">
+    <div class="photo-list" id="insp_photoList"></div>
+    <div id="insp_pasteHint" style="color:var(--mut);font-size:13px;padding:6px 0">사진 없음</div>
+  </div>
+</div>
+<button class="btn pri" style="width:100%;padding:13px;font-size:16px;margin-top:4px" onclick="saveInsp()">✅ 점검 저장</button>`;
+}
+
+/* 대차 검색 필터
+   - 숫자만 입력 → 그 번호 대차만 (예: "5" → 1FRT-5, 1RR-5, 2FRT-5 …)
+   - 텍스트 입력 → ID·이름 포함 검색 (예: "1FRT", "1라인", "CPAD")
+*/
+function filterCartChk(q){
+  const rows=document.querySelectorAll('#cartChkList .cart-chk-row');
+  const lq=(q||'').trim().toLowerCase();
+  const isNum=/^\d+$/.test(lq);
+  rows.forEach(r=>{
+    let show=false;
+    if(!lq){
+      show=true;
+    } else if(isNum){
+      const numPart=r.dataset.id.split('-').pop();
+      show=(parseInt(numPart,10)===parseInt(lq,10));
+    } else {
+      show=r.dataset.id.toLowerCase().includes(lq)||r.dataset.name.includes(lq);
+    }
+    r.style.display=show?'':'none';
+  });
+}
+/* 전체 선택/해제 */
+function selectAllCartChk(sel){
+  const rows=document.querySelectorAll('#cartChkList .cart-chk-row');
+  rows.forEach(r=>{
+    if(r.style.display==='none') return;
+    const cb=r.querySelector('input');
+    cb.checked=sel;
+    r.classList.toggle('selected',sel);
+  });
+  updateSelCount();
+}
+/* 그룹 선택 */
+function selectGroup(idx){
+  const g=BTN_GROUPS[idx]; if(!g) return;
+  const rows=document.querySelectorAll('#cartChkList .cart-chk-row');
+  const groupRows=[...rows].filter(r=>g.match(r.dataset.id));
+  // 전부 선택돼 있으면 해제, 아니면 추가 선택 (기존 선택 유지)
+  const allChecked=groupRows.every(r=>r.querySelector('input').checked);
+  groupRows.forEach(r=>{
+    const cb=r.querySelector('input');
+    cb.checked=!allChecked;
+    r.classList.toggle('selected',!allChecked);
+  });
+  updateSelCount();
+}
+/* 선택 카운트 */
+function updateSelCount(){
+  const n=document.querySelectorAll('#cartChkList .cart-chk:checked').length;
+  const el=document.getElementById('selCount');
+  if(el) el.textContent=n+'대 선택';
+  document.querySelectorAll('#cartChkList .cart-chk-row').forEach(r=>{
+    r.classList.toggle('selected',r.querySelector('input').checked);
+  });
+}
+
+function mkCheckItem(key, label, opts, okVal){
+  return `<div class="check-item ok-item" id="ci_${key}">
+    <div class="ci-label">${label}</div>
+    <select onchange="onCheckChange('${key}',this.value,'${okVal}')">
+      ${opts.map(o=>`<option>${o}</option>`).join('')}
+    </select>
+  </div>`;
+}
+function onCheckChange(key,val,okVal){
+  const el=document.getElementById('ci_'+key); if(!el) return;
+  el.classList.toggle('ok-item',val===okVal);
+  el.classList.toggle('ng-item',val!==okVal);
+}
+function onReplaceChange(checked){
+  const el=document.getElementById('ci_replace');
+  const lbl=document.getElementById('chk_replace_lbl');
+  if(el){ el.style.borderColor=checked?'var(--blue)':'var(--bd)'; el.style.background=checked?'#0d1f3c':''; }
+  if(lbl){ lbl.textContent=checked?'완료':'미완료'; lbl.style.color=checked?'var(--blue)':'var(--mut)'; }
+  // 하나 누르면 둘 다 체크
+  if(checked){
+    const doneChk=document.getElementById('chk_done');
+    if(doneChk&&!doneChk.checked){ doneChk.checked=true; onDoneChange(true); }
+  }
+}
+function onDoneChange(checked){
+  const wrap=document.getElementById('ci_done_wrap');
+  const lbl=document.getElementById('chk_done_lbl');
+  if(wrap){ wrap.style.borderColor=checked?'var(--ok)':'var(--bd)'; wrap.style.background=checked?'var(--okbg)':''; }
+  if(lbl){ lbl.textContent=checked?'— 완료':'— 미완료'; lbl.style.color=checked?'var(--ok)':'var(--mut)'; }
+  // 하나 누르면 둘 다 체크
+  if(checked){
+    const replChk=document.getElementById('chk_replace');
+    if(replChk&&!replChk.checked){ replChk.checked=true; onReplaceChange(true); }
+  }
+}
+
+let followUpPhotos=[];
+let followUpModalActive=false;
+function addPhotos(input,type){
+  const arr=(type==='followUp'?followUpPhotos:inspPhotos);
+  const listId=(type==='followUp'?'fu_photoList':'insp_photoList');
+  Array.from(input.files).forEach(async f=>{
+    if(arr.length>=5){ alert('사진은 최대 5장까지 첨부 가능합니다'); return; }
+    const url=await compressImage(f,1024,0.55);
+    arr.push({url,name:f.name});
+    refreshPhotoList(listId,arr,type);
+  });
+  input.value='';
+}
+
+function saveToAlbum(url, name){
+  try{
+    const fname = name || ('cams_'+new Date().toISOString().slice(0,19).replace(/[T:]/g,'-')+'.jpg');
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fname;
+    a.style.display='none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>document.body.removeChild(a), 1000);
+  } catch(e){}
+}
+function refreshPhotoList(listId,arr,type){
+  const el=document.getElementById(listId); if(!el) return;
+  const arrName=(type==='followUp'?'followUpPhotos':'inspPhotos');
+  el.innerHTML=arr.map((p,i)=>`<div class="ph">
+    <img src="${p.url}" onclick="viewImg('${p.url}')">
+    <button class="del" onclick="${arrName}.splice(${i},1);refreshPhotoList('${listId}',${arrName},'${type}')">✕</button>
+    <a class="ph-save" href="${p.url}" download="${p.name||'photo.jpg'}" title="기기에 저장">💾</a>
+  </div>`).join('');
+  // 힌트 표시/숨김
+  const hintId=(type==='followUp'?'fu_pasteHint':'insp_pasteHint');
+  const hint=document.getElementById(hintId);
+  if(hint) hint.style.display=arr.length?'none':'block';
+}
+
+/* ===== 붙여넣기(Ctrl+V) ===== */
+document.addEventListener('paste', async e=>{
+  // ① 파일을 동기적으로 먼저 추출 (await 이후엔 clipboardData 소멸)
+  const files=[...e.clipboardData.items]
+    .filter(i=>i.type.startsWith('image/'))
+    .map(i=>i.getAsFile())
+    .filter(Boolean);
+  if(!files.length) return;
+  e.preventDefault(); // 텍스트 붙여넣기 방지
+  // ② 현재 활성 폼 판단 (curPage + tab 변수로 안정적으로 체크)
+  const type=(curPage==='insp'&&inspTab==='form')?'insp':
+             followUpModalActive?'followUp':null;
+  if(!type) return;
+  const arr=type==='insp'?inspPhotos:issuePhotos;
+  const listId=type==='insp'?'insp_photoList':'issue_photoList';
+  for(const file of files){
+    if(arr.length>=5){ alert('사진은 최대 5장까지 첨부 가능합니다'); break; }
+    const url=await compressImage(file,1024,0.55);
+    arr.push({url,name:'붙여넣기_'+(arr.length+1)+'.jpg'});
+    refreshPhotoList(listId,arr,type);
+  }
+});
+
+/* ===== 드래그&드롭 ===== */
+async function dropPhoto(e, type){
+  e.preventDefault();
+  const files=[...e.dataTransfer.files].filter(f=>f.type.startsWith('image/'));
+  const arr=type==='followUp'?followUpPhotos:inspPhotos;
+  const listId=type==='followUp'?'fu_photoList':'insp_photoList';
+  for(const file of files){
+    if(arr.length>=5){ alert('사진은 최대 5장까지 첨부 가능합니다'); break; }
+    const url=await compressImage(file,1024,0.55);
+    arr.push({url,name:file.name});
+    refreshPhotoList(listId,arr,type);
+  }
+}
+
+async function saveInsp(){
+  const date=val('insp_date');
+  if(!date){ alert('점검일을 입력하세요'); return; }
+  const selected=[...document.querySelectorAll('#cartChkList .cart-chk:checked')].map(c=>c.value);
+  if(selected.length===0){ alert('대차를 하나 이상 선택하세요'); return; }
+  const checks={
+    wheels:   selVal('ci_wheels'),
+    frame:    selVal('ci_frame'),
+    shoba:    selVal('ci_shoba'),
+    fixtures: selVal('ci_fixtures'),
+    clean:    selVal('ci_clean'),
+  };
+  const done=document.getElementById('chk_done')?.checked||false;
+  const replaced=document.getElementById('chk_replace')?.checked||false;
+  const allNormal=(checks.wheels==='정상'&&checks.frame==='정상'&&checks.shoba==='정상'&&checks.fixtures==='정상'&&checks.clean==='청결');
+  // 이상 있어도 교체완료+점검완료 체크 시 OK 처리
+  const result=(allNormal||(done&&replaced))?'OK':'NG';
+  const inspector=val('insp_who');
+  const memo=val('insp_memo');
+  const ts=firebase.firestore.FieldValue.serverTimestamp();
+  showOverlay(`점검 저장 중… (0 / ${selected.length})`);
+  try{
+    let batch=db.batch(); let cnt=0; let saved=0;
+    const ns=result==='OK'?'정상운용':'점검대기';
+    // 미리 doc 참조 생성 (ID를 메모리에도 저장하기 위해)
+    const docRefs=selected.map(()=>db.collection('inspections').doc());
+    for(let si=0;si<selected.length;si++){
+      const cartId=selected[si];
+      const ref=docRefs[si];
+      batch.set(ref,{cartId,date,inspector,checks,result,done,replaced,memo,photos:inspPhotos,createdAt:ts});
+      batch.update(db.collection('carts').doc(cartId),{status:ns,updatedAt:ts});
+      cnt+=2;
+      if(cnt>=498){ await batch.commit(); saved+=cnt/2; batch=db.batch(); cnt=0; showOverlay(`점검 저장 중… (${saved} / ${selected.length})`); }
+    }
+    if(cnt>0) await batch.commit();
+    // 메모리 반영 (실제 Firestore ID 사용)
+    for(let si=0;si<selected.length;si++){
+      const cartId=selected[si];
+      const d={id:docRefs[si].id,cartId,date,inspector,checks,done,replaced,result,memo,photos:[...inspPhotos]};
+      INSPECTIONS.unshift(d);
+      if(CARTS[cartId]) CARTS[cartId].status=ns;
+    }
+    inspPhotos=[]; hideOverlay(); setSyncStatus('저장됨 ✅');
+    alert(`점검 저장 완료!\n${selected.length}대 · 결과: ${result}`);
+    renderInsp();
+    if(curPage==='dash') renderDash();
+  } catch(e){ hideOverlay(); alert('저장 오류: '+e.message); }
+}
+
+let histSearch='';
+let histNgOnly=false;
+
+function buildInspHist(){
+  const lq=histSearch.toLowerCase();
+  const filtered=INSPECTIONS.filter(r=>{
+    const matchSearch=!lq||
+      (r.cartId||'').toLowerCase().includes(lq)||
+      (r.inspector||'').toLowerCase().includes(lq)||
+      (r.date||'').includes(lq);
+    const matchNg=!histNgOnly||(r.result!=='OK');
+    return matchSearch&&matchNg;
+  });
+  const ngTotal=INSPECTIONS.filter(r=>r.result!=='OK').length;
+  const rows=filtered.slice(0,100).map(r=>{
+    const isNG=r.result!=='OK';
+    const rowStyle=isNG?'background:rgba(239,68,68,0.07)':'';
+    return `<tr style="${rowStyle}">
+    <td>${r.date}</td>
+    <td><b>${r.cartId}</b>${CARTS[r.cartId]?.name?'<br><span style="color:var(--mut);font-size:12px">'+CARTS[r.cartId].name+'</span>':''}</td>
+    <td>${r.inspector||'—'}</td>
+    <td>${chkBadge(r.checks?.wheels,'정상')}</td>
+    <td>${chkBadge(r.checks?.frame,'정상')}</td>
+    <td>${chkBadge(r.checks?.shoba,'정상')}</td>
+    <td>${chkBadge(r.checks?.fixtures,'정상')}</td>
+    <td>${chkBadge(r.checks?.clean,'청결')}</td>
+    <td><span class="badge ${isNG?'st-ng':'st-ok'}">${r.result}</span></td>
+    <td>${r.done?'<span class="badge st-ok">✅ 완료</span>':'<span class="badge st-mut">—</span>'}</td>
+    <td>${r.replaced?'<span class="badge st-blue">🔧 완료</span>':'<span class="badge st-mut">—</span>'}</td>
+    <td style="color:var(--mut);font-size:12px">${r.memo||'—'}</td>
+    <td>${r.photos&&r.photos.length?r.photos.map(p=>`<img src="${p.url}" onclick="viewImg('${p.url}')" style="width:56px;height:42px;object-fit:cover;border-radius:5px;border:1px solid var(--bd);cursor:pointer;margin:2px">`).join(''):'—'}</td>
+    <td style="white-space:nowrap">
+      ${isNG?`<button class="btn sm" style="background:var(--warnbg);color:var(--warn);border-color:var(--warn)" onclick="openFollowUp('${r.id}')">🔧 후속조치</button>`:''}
+      <button class="btn sm danger" style="margin-left:4px" onclick="deleteInsp('${r.id}')">삭제</button>
+    </td>
+  </tr>`;
+  }).join('');
+  return `
+  <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+    <input id="histSearchInp" style="flex:1;min-width:180px;padding:9px 12px;border:1px solid var(--bd);border-radius:9px;font-size:14px;background:#1a1d24;color:#f1f5f9" placeholder="🔍 대차번호·FRT·RR·날짜·점검자 검색…" value="${esc(histSearch)}" oninput="histSearch=this.value;renderInsp()">
+    <button class="btn${histNgOnly?' danger':''}" onclick="histNgOnly=!histNgOnly;renderInsp()" style="${histNgOnly?'':''}">
+      ❌ NG만 보기${ngTotal>0?` <span style="background:var(--ng);color:#fff;font-size:11px;padding:2px 7px;border-radius:10px;margin-left:4px">${ngTotal}</span>`:''}
+    </button>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>날짜</th><th>대차</th><th>점검자</th><th>바퀴</th><th>프레임</th><th>쇼바</th><th>적재장치</th><th>청소</th><th>결과</th><th>점검완료</th><th>교체완료</th><th>메모</th><th>사진</th><th>조작</th></tr></thead>
+    <tbody>${rows||'<tr><td colspan="14"><div class="empty">검색 결과 없음</div></td></tr>'}</tbody>
+  </table></div>`;
+}
+function chkBadge(v,ok){ return `<span class="badge ${v===ok?'st-ok':'st-ng'}">${v||'—'}</span>`; }
+
+/* ===== 관리자 인증 ===== */
+const ADMIN_PIN='103518';
+let _authed=false;
+function checkAdmin(){
+  if(_authed) return true;
+  const v=prompt('🔒 관리자 비밀번호를 입력하세요');
+  if(v===ADMIN_PIN){ _authed=true; setTimeout(()=>{ _authed=false; },30*60*1000); return true; }
+  if(v!==null) alert('비밀번호가 틀렸습니다.');
+  return false;
+}
+
+async function deleteInsp(id){
+  if(!checkAdmin()) return;
+  if(!confirm('이 점검 기록을 삭제하시겠습니까?')) return;
+  try{
+    await db.collection('inspections').doc(id).delete();
+    INSPECTIONS=INSPECTIONS.filter(i=>i.id!==id);
+    setSyncStatus('삭제됨');
+    renderInsp();
+    renderDash();
+  } catch(e){ alert('삭제 오류: '+e.message); }
+}
+
+/* ======================================================
+   🔧 후속 조치 모달 (점검 이력 → 교체완료·점검완료 · 사진 · OK 반영)
+   ====================================================== */
+function openFollowUp(id){
+  const r=INSPECTIONS.find(i=>i.id===id);
+  if(!r){ alert('기록을 찾을 수 없습니다.\n🔄 새로고침 후 다시 시도하세요.'); return; }
+  followUpPhotos=[];
+  followUpModalActive=true;
+  const existThumb=(r.photos&&r.photos.length)
+    ?'<div style="margin-bottom:14px"><div style="font-size:12px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">기존 사진</div><div style="display:flex;flex-wrap:wrap;gap:8px">'+
+      r.photos.map(p=>`<img src="${p.url}" onclick="viewImg('${p.url}')" style="width:80px;height:60px;object-fit:cover;border-radius:7px;border:1px solid var(--bd);cursor:pointer">`).join('')+
+      '</div></div>':'';
+  document.body.insertAdjacentHTML('beforeend',`
+<div class="modal-bg" id="followUpModal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-h">
+      <h3>🔧 후속 조치</h3>
+      <button class="btn" onclick="closeFollowUp()">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- 현재 점검 요약 -->
+      <div style="background:var(--hd2);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:13px">
+        <b>${esc(r.cartId)}</b> · ${r.date||''} · 현재 결과: <span class="badge ${r.result==='OK'?'st-ok':'st-ng'}">${r.result||'NG'}</span>
+        ${r.checks?`<div style="margin-top:5px;color:var(--mut);font-size:12px">바퀴: ${r.checks.wheels||'—'} · 프레임: ${r.checks.frame||'—'} · 쇼바: ${r.checks.shoba||'—'} · 적재: ${r.checks.fixtures||'—'} · 청소: ${r.checks.clean||'—'}</div>`:''}
+      </div>
+      <!-- 체크박스 -->
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:15px;font-weight:700;background:var(--hd2);border:2px solid ${r.replaced?'var(--blue)':'var(--bd)'};border-radius:10px;padding:12px 14px" id="fu_replace_wrap">
+          <input type="checkbox" id="fu_replace" ${r.replaced?'checked':''} style="width:20px;height:20px;accent-color:var(--blue)" onchange="onFuReplaceChange(this.checked)">
+          <span>🔧 교체 완료</span>
+          <span id="fu_replace_lbl" style="font-size:13px;font-weight:400;color:${r.replaced?'var(--blue)':'var(--mut)'};margin-left:4px">${r.replaced?'— 완료':'— 미완료'}</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:15px;font-weight:700;background:var(--hd2);border:2px solid ${r.done?'var(--ok)':'var(--bd)'};border-radius:10px;padding:12px 14px" id="fu_done_wrap">
+          <input type="checkbox" id="fu_done" ${r.done?'checked':''} style="width:20px;height:20px;accent-color:var(--ok)" onchange="onFuDoneChange(this.checked)">
+          <span>✅ 점검 완료</span>
+          <span id="fu_done_lbl" style="font-size:13px;font-weight:400;color:${r.done?'var(--ok)':'var(--mut)'};margin-left:4px">${r.done?'— 완료':'— 미완료'}</span>
+        </label>
+      </div>
+      <!-- 후속 메모 -->
+      <div style="margin-bottom:14px">
+        <label style="font-size:12px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:5px">후속 메모</label>
+        <textarea id="fu_memo" style="width:100%;padding:9px 10px;border:1px solid var(--bd);border-radius:8px;font-size:14px;background:#0f1117;color:#f1f5f9;min-height:60px;font-family:inherit" placeholder="후속 조치 내용, 메모…">${esc(r.memo||'')}</textarea>
+      </div>
+      <!-- 기존 사진 썸네일 -->
+      ${existThumb}
+      <!-- 새 사진 추가 -->
+      <div>
+        <label style="font-size:12px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:6px">후속 사진 추가</label>
+        <input type="file" id="fu_file" accept="image/*" multiple style="display:none" onchange="addPhotos(this,'followUp')">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+          <button class="btn" onclick="document.getElementById('fu_file').click()">📷 사진 추가 (카메라 · 앨범)</button>
+          <span style="font-size:12px;color:var(--mut)">또는 Ctrl+V · 드래그&드롭</span>
+        </div>
+        <div class="paste-zone" id="fu_pasteZone" ondragover="event.preventDefault()" ondrop="dropPhoto(event,'followUp')">
+          <div class="photo-list" id="fu_photoList"></div>
+          <div id="fu_pasteHint" style="color:var(--mut);font-size:13px;padding:6px 0">사진 없음</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeFollowUp()">취소</button>
+      <button class="btn pri" style="background:var(--ok);border-color:var(--ok)" onclick="saveFollowUp('${esc(id)}')">💾 저장 → 결과 반영</button>
+    </div>
+  </div>
+</div>`);
+}
+
+function closeFollowUp(){
+  followUpModalActive=false;
+  followUpPhotos=[];
+  closeModal('followUpModal');
+}
+
+function onFuReplaceChange(checked){
+  const wrap=document.getElementById('fu_replace_wrap');
+  const lbl=document.getElementById('fu_replace_lbl');
+  if(wrap) wrap.style.borderColor=checked?'var(--blue)':'var(--bd)';
+  if(lbl){ lbl.textContent=checked?'— 완료':'— 미완료'; lbl.style.color=checked?'var(--blue)':'var(--mut)'; }
+  // 하나 누르면 둘 다 체크
+  if(checked){
+    const doneChk=document.getElementById('fu_done');
+    if(doneChk&&!doneChk.checked){ doneChk.checked=true; onFuDoneChange(true); }
+  }
+}
+function onFuDoneChange(checked){
+  const wrap=document.getElementById('fu_done_wrap');
+  const lbl=document.getElementById('fu_done_lbl');
+  if(wrap){ wrap.style.borderColor=checked?'var(--ok)':'var(--bd)'; wrap.style.background=checked?'var(--okbg)':''; }
+  if(lbl){ lbl.textContent=checked?'— 완료':'— 미완료'; lbl.style.color=checked?'var(--ok)':'var(--mut)'; }
+  // 하나 누르면 둘 다 체크
+  if(checked){
+    const replChk=document.getElementById('fu_replace');
+    if(replChk&&!replChk.checked){ replChk.checked=true; onFuReplaceChange(true); }
+  }
+}
+
+async function saveFollowUp(id){
+  const r=INSPECTIONS.find(i=>i.id===id); if(!r) return;
+  const done=document.getElementById('fu_done')?.checked||false;
+  const replaced=document.getElementById('fu_replace')?.checked||false;
+  const memo=document.getElementById('fu_memo')?.value.trim()||'';
+  // 결과 재계산 — 교체완료+점검완료 또는 전항목 정상이면 OK
+  const checks=r.checks||{};
+  const allNormal=(checks.wheels==='정상'&&checks.frame==='정상'&&checks.shoba==='정상'&&checks.fixtures==='정상'&&checks.clean==='청결');
+  const result=(allNormal||(done&&replaced))?'OK':'NG';
+  // 사진: 기존 + 새로 추가된 사진 합치기
+  const allPhotos=[...(r.photos||[]),...followUpPhotos];
+  try{
+    const ts=firebase.firestore.FieldValue.serverTimestamp();
+    await db.collection('inspections').doc(id).update({done,replaced,result,memo,photos:allPhotos,updatedAt:ts});
+    // 대차 상태 자동 반영
+    const ns=result==='OK'?'정상운용':'점검대기';
+    if(CARTS[r.cartId]){
+      await db.collection('carts').doc(r.cartId).update({status:ns,updatedAt:ts});
+      CARTS[r.cartId].status=ns;
+    }
+    // 메모리 즉시 반영
+    r.done=done; r.replaced=replaced; r.result=result; r.memo=memo; r.photos=allPhotos;
+    closeFollowUp();
+    setSyncStatus('저장됨 ✅');
+    alert(`후속 조치 저장 완료!\n결과: ${result}${result==='OK'?' → 대차 상태: 정상운용':''}`);
+    renderInsp();
+    renderDash();
+  } catch(e){ alert('저장 오류: '+e.message); }
+}
+
+/* ======================================================
+   📦 입출고
+   ====================================================== */
+let moveTab='form';
+function renderMove(){
+  document.getElementById('pg-move').innerHTML=`
+<div class="page-h">
+  <button class="hamb" onclick="toggleNav()">☰</button>
+  <h1>📦 입출고 관리</h1>
+</div>
+<div class="tabs">
+  <div class="tab${moveTab==='form'?' active':''}" onclick="moveTab='form';renderMove()">📝 입출고 입력</div>
+  <div class="tab${moveTab==='hist'?' active':''}" onclick="moveTab='hist';renderMove()">📋 입출고 이력</div>
+</div>
+${moveTab==='form' ? buildMoveForm() : buildMoveHist()}`;
+}
+
+function buildMoveForm(){
+  return `
+<div class="form-card">
+  <div class="frow">
+    <div class="fg"><label>대차 *</label><select id="mv_cart">${cartSelectOpts()}</select></div>
+    <div class="fg"><label>날짜 *</label><input type="date" id="mv_date" value="${today()}"></div>
+    <div class="fg"><label>유형 *</label>
+      <select id="mv_type"><option>입고</option><option>출고</option><option>이동</option></select>
+    </div>
+  </div>
+  <div class="frow">
+    <div class="fg"><label>출발지</label><input id="mv_from" placeholder="예: 창고, 수리실"></div>
+    <div class="fg"><label>도착지</label><input id="mv_to" placeholder="예: 1LINE, 2LINE"></div>
+    <div class="fg"><label>수량</label><input type="number" id="mv_qty" value="1" min="1" style="max-width:80px"></div>
+  </div>
+  <div class="frow">
+    <div class="fg"><label>담당자</label><input id="mv_who" placeholder="이름"></div>
+    <div class="fg"><label>메모</label><input id="mv_memo" placeholder="비고"></div>
+  </div>
+  <button class="btn pri" style="width:100%;padding:12px;font-size:15px;margin-top:8px" onclick="saveMove()">📦 저장</button>
+</div>`;
+}
+
+async function saveMove(){
+  const cartId=val('mv_cart'); const date=val('mv_date');
+  if(!cartId){ alert('대차를 선택하세요'); return; }
+  const to=val('mv_to');
+  const data={cartId,date,type:val('mv_type'),from:val('mv_from'),to,qty:parseInt(document.getElementById('mv_qty').value)||1,who:val('mv_who'),memo:val('mv_memo'),createdAt:firebase.firestore.FieldValue.serverTimestamp()};
+  try{
+    const ref=await db.collection('movements').add(data);
+    MOVEMENTS.unshift({id:ref.id,...data});
+    // 위치 자동 갱신
+    if(to && CARTS[cartId]){
+      await db.collection('carts').doc(cartId).update({location:to,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+      CARTS[cartId].location=to;
+    }
+    setSyncStatus('저장됨 ✅');
+    alert('입출고 저장 완료!');
+    renderMove();
+  } catch(e){ alert('저장 오류: '+e.message); }
+}
+
+function buildMoveHist(){
+  const rows=MOVEMENTS.slice(0,100).map(r=>`<tr>
+    <td>${r.date}</td>
+    <td><b>${r.cartId}</b></td>
+    <td><span class="badge ${r.type==='입고'?'st-ok':r.type==='출고'?'st-ng':'st-blue'}">${r.type}</span></td>
+    <td>${r.from||'—'}</td>
+    <td>${r.to||'—'}</td>
+    <td>${r.qty||1}</td>
+    <td>${r.who||'—'}</td>
+    <td style="color:var(--mut);font-size:12px">${r.memo||'—'}</td>
+  </tr>`).join('');
+  return `<div class="tbl-wrap"><table>
+    <thead><tr><th>날짜</th><th>대차</th><th>유형</th><th>출발지</th><th>도착지</th><th>수량</th><th>담당자</th><th>메모</th></tr></thead>
+    <tbody>${rows||'<tr><td colspan="8"><div class="empty">입출고 기록 없음</div></td></tr>'}</tbody>
+  </table></div>`;
+}
+
+/* ======================================================
+   공통 유틸
+   ====================================================== */
+function cartSelectOpts(){
+  const list=Object.values(CARTS).sort((a,b)=>(a.id||'').localeCompare(b.id||''));
+  return list.length===0
+    ? '<option value="">— 대차를 먼저 등록하세요 —</option>'
+    : list.map(c=>`<option value="${c.id}">${c.id}${c.name?' — '+c.name:''}</option>`).join('');
+}
+function val(id){ const el=document.getElementById(id); return el?el.value.trim():''; }
+function selVal(ciId){ const el=document.querySelector('#'+ciId+' select'); return el?el.value:''; }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+function closeModal(id){ const el=document.getElementById(id); if(el) el.remove(); }
+function viewImg(url){
+  document.body.insertAdjacentHTML('beforeend',
+    `<div style="position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:100;display:flex;align-items:center;justify-content:center" onclick="this.remove()">
+       <img src="${url}" style="max-width:95vw;max-height:95vh;border-radius:8px">
+     </div>`);
+}
+async function refreshAll(){
+  showOverlay('🔄 새로고침 중…');
+  try{
+    await loadAll(); hideOverlay(); setSyncStatus('동기화 완료 ✅'); render(curPage);
+  } catch(e){ showOverlay('오류: '+e.message); }
+}
+
+/* ======================================================
+   초기 대차 데이터 (251대)
+   ====================================================== */
+const SEED_GROUPS = [
+  {prefix:'1LINE-FRT', name:'1라인 FRT 대차',   location:'1LINE', count:48},
+  {prefix:'1LINE-RR',  name:'1라인 RR 대차',    location:'1LINE', count:45},
+  {prefix:'2LINE-FRT', name:'2라인 FRT 대차',   location:'2LINE', count:45},
+  {prefix:'2LINE-RR',  name:'2라인 RR 대차',    location:'2LINE', count:44},
+  {prefix:'3LINE-CPAD',name:'3라인 C/PAD 대차', location:'3LINE', count:40},
+  {prefix:'3LINE',     name:'3라인 범퍼 대차',  location:'3LINE', count:29},
+];
+const SEED_TOTAL = SEED_GROUPS.reduce((s,g)=>s+g.count, 0); // 251
+
+// 그룹 버튼 — 1/2라인은 FRT+RR 합쳐서 하나 버튼
+const BTN_GROUPS = [
+  {label:'1라인', match: id => id.startsWith('1LINE-')},
+  {label:'2라인', match: id => id.startsWith('2LINE-')},
+  {label:'3라인', match: id => id.startsWith('3LINE-')},
+];
+
+async function reseedCarts(){
+  if(!confirm(`기존 대차를 전부 삭제하고 다시 등록하시겠습니까?\n\n※ 점검/입출고 기록은 유지됩니다`)) return;
+  showOverlay('기존 대차 삭제 중…');
+  // 기존 대차 전부 삭제 (배치)
+  const allIds = Object.keys(CARTS);
+  let batch = db.batch(); let cnt=0;
+  for(const id of allIds){
+    batch.delete(db.collection('carts').doc(id));
+    cnt++;
+    if(cnt===499){ await batch.commit(); batch=db.batch(); cnt=0; }
+  }
+  if(cnt>0) await batch.commit();
+  CARTS={};
+  // 새 형식으로 재등록
+  await seedCarts(true);
+}
+
+async function seedCarts(force){
+  if(!force && Object.keys(CARTS).length >= SEED_TOTAL){
+    alert('이미 대차가 등록되어 있습니다.\n번호 형식을 바꾸려면 "재등록" 버튼을 사용하세요.');
+    return;
+  }
+  if(!force && !confirm(`대차 ${SEED_TOTAL}대를 일괄 등록하시겠습니까?\n\n`+
+    SEED_GROUPS.map(g=>`${g.name} ${g.count}대`).join('\n'))){
+    return;
+  }
+  showOverlay('대차 등록 중… (0 / '+SEED_TOTAL+')');
+  const ts = firebase.firestore.FieldValue.serverTimestamp();
+  let done=0;
+  // Firestore 배치: 한 번에 최대 500건
+  let batch = db.batch();
+  let batchCount = 0;
+  for(const g of SEED_GROUPS){
+    for(let i=1;i<=g.count;i++){
+      const id = `${g.prefix}-${String(i).padStart(3,'0')}`;
+      const ref = db.collection('carts').doc(id);
+      batch.set(ref, {
+        id, name:g.name, location:g.location,
+        status:'정상운용', memo:'',
+        createdAt:ts, updatedAt:ts
+      });
+      batchCount++;
+      if(batchCount===499){
+        await batch.commit();
+        done+=batchCount; batchCount=0;
+        batch=db.batch();
+        showOverlay(`대차 등록 중… (${done} / ${SEED_TOTAL})`);
+      }
+    }
+  }
+  if(batchCount>0) await batch.commit();
+  await loadAll();
+  hideOverlay();
+  setSyncStatus('초기 등록 완료 ✅');
+  alert(`대차 ${SEED_TOTAL}대 등록 완료!`);
+  renderCarts();
+  go('carts');
+}
+
+/* ===== 초기화 ===== */
+window.addEventListener('DOMContentLoaded', async ()=>{
+  if(!fbInit()) return;
+  try{
+    await loadAll();
+    hideOverlay();
+    setSyncStatus('동기화 완료 ✅');
+    render('dash');
+  } catch(e){
+    showOverlay('데이터 로드 오류:<br>'+e.message+'<br><small style="font-size:13px;font-weight:400;margin-top:8px;display:block">Firebase 설정 및 Firestore 규칙을 확인하세요<br>설치방법.txt 참고</small>');
+  }
+});
+</script>
+</body>
+</html>
