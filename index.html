@@ -240,23 +240,55 @@ function showOverlay(html){ const o=document.getElementById('overlay'); o.innerH
 function hideOverlay(){ document.getElementById('overlay').style.display='none'; }
 function setSyncStatus(msg){ document.getElementById('syncStatus').textContent=msg; }
 
-/* ===== 전체 로드 ===== */
+/* ===== Firestore REST API 헬퍼 (읽기 전용) ===== */
+const _FS='https://firestore.googleapis.com/v1/projects/cams-cart-mgmt/databases/(default)';
+function _fsVal(v){
+  if(!v) return null;
+  if(v.stringValue!==undefined) return v.stringValue;
+  if(v.integerValue!==undefined) return Number(v.integerValue);
+  if(v.doubleValue!==undefined) return v.doubleValue;
+  if(v.booleanValue!==undefined) return v.booleanValue;
+  if(v.timestampValue!==undefined) return v.timestampValue;
+  if(v.nullValue!==undefined) return null;
+  if(v.arrayValue!==undefined) return (v.arrayValue.values||[]).map(x=>_fsVal(x));
+  if(v.mapValue!==undefined) return _fsFields(v.mapValue.fields);
+  return null;
+}
+function _fsFields(f){ if(!f) return {}; return Object.fromEntries(Object.entries(f).map(([k,v])=>[k,_fsVal(v)])); }
+function _fsDoc(d){ return {id:d.name.split('/').pop(),..._fsFields(d.fields)}; }
+async function _fsGetAll(col){
+  const r=await fetch(`${_FS}/documents/${col}?pageSize=500`);
+  const d=await r.json();
+  if(d.error) throw new Error(d.error.message);
+  return (d.documents||[]).map(_fsDoc);
+}
+async function _fsQuery(col,orderField,lim=300){
+  const r=await fetch(`${_FS}/documents:runQuery`,{method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({structuredQuery:{
+      from:[{collectionId:col}],
+      orderBy:[{field:{fieldPath:orderField},direction:'DESCENDING'}],
+      limit:lim
+    }})
+  });
+  const d=await r.json();
+  if(!Array.isArray(d)) throw new Error('쿼리 오류: '+JSON.stringify(d).slice(0,80));
+  return d.filter(x=>x.document).map(x=>_fsDoc(x.document));
+}
+
+/* ===== 전체 로드 (REST API 사용) ===== */
 async function loadAll(){
-  const _timeout = new Promise((_,rej)=>setTimeout(()=>rej(new Error(
-    'Firestore 연결 시간 초과 (15초)<br><small style="font-weight:400;font-size:14px">네트워크를 확인하고 새로고침 해주세요<br>계속 안 되면 Firebase 콘솔 → Firestore 규칙을 확인하세요</small>'
+  const _timeout=new Promise((_,rej)=>setTimeout(()=>rej(new Error(
+    'Firestore 연결 시간 초과 (15초)<br><small style="font-weight:400;font-size:14px">네트워크를 확인하고 새로고침 해주세요</small>'
   )),15000));
-  const [cS,iS,mS] = await Promise.race([
-    Promise.all([
-      db.collection('carts').get(),
-      db.collection('inspections').orderBy('createdAt','desc').limit(300).get(),
-      db.collection('movements').orderBy('createdAt','desc').limit(300).get()
-    ]),
+  const [cArr,iArr,mArr]=await Promise.race([
+    Promise.all([_fsGetAll('carts'),_fsQuery('inspections','createdAt'),_fsQuery('movements','createdAt')]),
     _timeout
   ]);
   CARTS={};
-  cS.forEach(d=>{ CARTS[d.id]={...d.data(),_docId:d.id}; });
-  INSPECTIONS=[]; iS.forEach(d=>INSPECTIONS.push({id:d.id,...d.data()}));
-  MOVEMENTS=[];   mS.forEach(d=>MOVEMENTS.push({id:d.id,...d.data()}));
+  cArr.forEach(d=>{ CARTS[d.id]={...d,_docId:d.id}; });
+  INSPECTIONS=iArr;
+  MOVEMENTS=mArr;
 }
 
 /* ===== 사진 압축 ===== */
