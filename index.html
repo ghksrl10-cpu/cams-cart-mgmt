@@ -228,13 +228,21 @@ function fbInit(){
     showOverlay('⚠️ Firebase 설정이 비어 있습니다.<br>index.html 의 firebaseConfig 를 채워주세요.<br><small style="font-size:14px;font-weight:400">설치방법.txt 를 참고하세요</small>');
     return false;
   }
+  // Firebase SDK가 없어도 REST API로 읽기 가능 → 앱은 항상 표시
+  if(typeof firebase==='undefined'){
+    console.warn('Firebase SDK 미로드 — 읽기는 REST API, 쓰기는 불가');
+    return true;
+  }
   try{
     firebase.initializeApp(firebaseConfig);
     db=firebase.firestore();
-    db.settings({ experimentalForceLongPolling: true, merge: true });
+    try{ db.settings({experimentalForceLongPolling:true}); }catch(e2){}
     return true;
   }
-  catch(e){ showOverlay('Firebase 연결 오류:<br>'+e.message); return false; }
+  catch(e){
+    console.error('Firebase SDK 초기화 오류:', e);
+    return true; // 오류 있어도 REST API로 읽기 계속
+  }
 }
 function showOverlay(html){ const o=document.getElementById('overlay'); o.innerHTML=html; o.style.display='flex'; }
 function hideOverlay(){ document.getElementById('overlay').style.display='none'; }
