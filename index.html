@@ -1000,6 +1000,7 @@ function buildInspHist(){
     <button class="btn${histNgOnly?' danger':''}" onclick="histNgOnly=!histNgOnly;renderInsp()" style="${histNgOnly?'':''}">
       ❌ NG만 보기${ngTotal>0?` <span style="background:var(--ng);color:#fff;font-size:11px;padding:2px 7px;border-radius:10px;margin-left:4px">${ngTotal}</span>`:''}
     </button>
+    <button class="btn" style="background:var(--warnbg);color:var(--warn);border-color:var(--warn);white-space:nowrap" onclick="autoRegFrameMoves()">🔩 프레임이상 입출고 일괄등록</button>
   </div>
   <div class="tbl-wrap"><table>
     <thead><tr><th>날짜</th><th>대차</th><th>점검자</th><th>바퀴</th><th>프레임</th><th>쇼바</th><th>적재장치</th><th>청소</th><th>결과</th><th>점검완료</th><th>교체완료</th><th>메모</th><th>사진</th><th>조작</th></tr></thead>
