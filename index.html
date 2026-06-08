@@ -942,7 +942,7 @@ async function saveInsp(){
       const moveBatch=db.batch();
       for(const cartId of selected){
         const mRef=db.collection('movements').doc();
-        const mData={cartId,date,type:'입고 대기(사내)',from:'',to:'인텍',qty:1,who:'오명진 팀장',memo,createdAt:ts};
+        const mData={cartId,date,type:'출고 대기(사내)',from:'',to:'인텍',qty:1,who:'오명진 팀장',memo,createdAt:ts};
         moveBatch.set(mRef,mData);
         MOVEMENTS.unshift({id:mRef.id,...mData});
         autoMoveCount++;
@@ -950,7 +950,7 @@ async function saveInsp(){
       await moveBatch.commit();
     }
     inspPhotos=[]; hideOverlay(); setSyncStatus('저장됨 ✅');
-    const autoMsg=autoMoveCount>0?`\n🔩 프레임 이상 → 입출고 ${autoMoveCount}건 자동 등록됨 (입고 대기(사내) · 인텍)`:'';
+    const autoMsg=autoMoveCount>0?`\n🔩 프레임 이상 → 입출고 ${autoMoveCount}건 자동 등록됨 (출고 대기(사내) · 인텍)`:'';
     alert(`점검 저장 완료!\n${selected.length}대 · 결과: ${result}${autoMsg}`);
     renderInsp();
     if(curPage==='dash') renderDash();
@@ -1015,13 +1015,13 @@ async function autoRegFrameMoves(){
   if(frameNG.length===0){ alert('프레임 이상 점검 이력이 없습니다.'); return; }
   // 이미 입출고 등록된 항목 (같은 대차+날짜+유형)
   const existing=new Set(
-    MOVEMENTS.filter(m=>m.type==='입고 대기(사내)').map(m=>`${m.cartId}__${m.date}`)
+    MOVEMENTS.filter(m=>m.type==='출고 대기(사내)').map(m=>`${m.cartId}__${m.date}`)
   );
   const toAdd=frameNG.filter(r=>!existing.has(`${r.cartId}__${r.date}`));
   if(toAdd.length===0){ alert('프레임 이상 이력 '+frameNG.length+'건이 모두 이미 입출고 등록되어 있습니다.'); return; }
   const ok=confirm(
     `프레임 이상 ${frameNG.length}건 중 미등록 ${toAdd.length}건을 입출고 자동 등록하시겠습니까?\n\n`+
-    `유형: 입고 대기(사내)\n도착지: 인텍\n담당자: 오명진 팀장\n메모: 점검 메모 그대로`
+    `유형: 출고 대기(사내)\n도착지: 인텍\n담당자: 오명진 팀장\n메모: 점검 메모 그대로`
   );
   if(!ok) return;
   showOverlay(`입출고 등록 중… (0 / ${toAdd.length})`);
@@ -1030,7 +1030,7 @@ async function autoRegFrameMoves(){
     let batch=db.batch(); let cnt=0; let done=0;
     for(const r of toAdd){
       const mRef=db.collection('movements').doc();
-      const mData={cartId:r.cartId,date:r.date,type:'입고 대기(사내)',from:'',to:'인텍',qty:1,who:'오명진 팀장',memo:r.memo||'',createdAt:ts};
+      const mData={cartId:r.cartId,date:r.date,type:'출고 대기(사내)',from:'',to:'인텍',qty:1,who:'오명진 팀장',memo:r.memo||'',createdAt:ts};
       batch.set(mRef,mData);
       MOVEMENTS.push({id:mRef.id,...mData});
       cnt++;
@@ -1039,7 +1039,7 @@ async function autoRegFrameMoves(){
     if(cnt>0) await batch.commit();
     MOVEMENTS.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
     hideOverlay(); setSyncStatus('저장됨 ✅');
-    alert(`입출고 자동 등록 완료!\n${toAdd.length}건 등록됨 (유형: 입고 대기(사내) · 도착지: 인텍)`);
+    alert(`입출고 자동 등록 완료!\n${toAdd.length}건 등록됨 (유형: 출고 대기(사내) · 도착지: 인텍)`);
     if(curPage==='move') renderMove();
   } catch(e){ hideOverlay(); alert('오류: '+e.message); }
 }
@@ -1255,7 +1255,7 @@ function buildMoveHist(){
   const rows=MOVEMENTS.slice(0,100).map(r=>`<tr>
     <td>${r.date}</td>
     <td><b>${r.cartId}</b></td>
-    <td><span class="badge ${r.type==='입고'?'st-ok':r.type==='출고'?'st-ng':r.type==='입고 대기(사내)'?'st-warn':'st-blue'}">${r.type}</span></td>
+    <td><span class="badge ${r.type==='입고'?'st-ok':r.type==='출고'?'st-ng':r.type==='출고 대기(사내)'?'st-warn':'st-blue'}">${r.type}</span></td>
     <td>${r.from||'—'}</td>
     <td>${r.to||'—'}</td>
     <td>${r.qty||1}</td>
