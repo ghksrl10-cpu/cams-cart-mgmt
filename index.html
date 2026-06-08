@@ -1253,13 +1253,15 @@ async function saveMove(){
 
 function buildMoveHist(){
   const rows=MOVEMENTS.slice(0,100).map(r=>{
+    const isWait=r.type==='출고 대기(사내)'||r.type==='입고 대기(사내)'||r.type==='입고 대기';
     let typeBadge;
     if(r.type==='입고') typeBadge='st-ok';
     else if(r.type==='출고') typeBadge='st-ng';
-    else if(r.type==='출고 대기(사내)') typeBadge='st-warn';
+    else if(isWait) typeBadge='st-warn';
     else if(r.type==='수리완료') typeBadge='st-ok';
     else typeBadge='st-blue';
-    const repairBtn=r.type==='출고 대기(사내)'
+    const dispType=isWait?'출고 대기(사내)':r.type;
+    const repairBtn=isWait
       ?`<button class="btn sm" style="background:var(--okbg);color:var(--ok);border-color:var(--ok)" onclick="repairMove('${r.id}','${r.cartId}')">✅ 수리완료</button>`
       :'';
     return `<tr>
