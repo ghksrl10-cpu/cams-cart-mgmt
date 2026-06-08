@@ -1279,6 +1279,25 @@ function buildMoveHist(){
   </table></div>`;
 }
 
+async function repairMove(id, cartId){
+  if(!confirm(`대차 ${cartId}\n수리 완료 처리하시겠습니까?\n\n유형이 "수리완료"로 변경되고\n대차 상태가 정상운용으로 복구됩니다.`)) return;
+  try{
+    const ts=firebase.firestore.FieldValue.serverTimestamp();
+    await db.collection('movements').doc(id).update({type:'수리완료',repairDate:today(),updatedAt:ts});
+    if(CARTS[cartId]){
+      await db.collection('carts').doc(cartId).update({status:'정상운용',updatedAt:ts});
+      CARTS[cartId].status='정상운용';
+    }
+    const m=MOVEMENTS.find(m=>m.id===id);
+    if(m){ m.type='수리완료'; m.repairDate=today(); }
+    setSyncStatus('저장됨 ✅');
+    alert(`수리완료 처리 완료!\n대차 ${cartId} → 정상운용으로 복구됨`);
+    renderMove();
+    if(curPage==='dash') renderDash();
+    if(curPage==='carts') renderCarts();
+  } catch(e){ alert('오류: '+e.message); }
+}
+
 /* ======================================================
    공통 유틸
    ====================================================== */
