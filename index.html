@@ -1252,18 +1252,29 @@ async function saveMove(){
 }
 
 function buildMoveHist(){
-  const rows=MOVEMENTS.slice(0,100).map(r=>`<tr>
+  const rows=MOVEMENTS.slice(0,100).map(r=>{
+    let typeBadge;
+    if(r.type==='입고') typeBadge='st-ok';
+    else if(r.type==='출고') typeBadge='st-ng';
+    else if(r.type==='출고 대기(사내)') typeBadge='st-warn';
+    else if(r.type==='수리완료') typeBadge='st-ok';
+    else typeBadge='st-blue';
+    const repairBtn=r.type==='출고 대기(사내)'
+      ?`<button class="btn sm" style="background:var(--okbg);color:var(--ok);border-color:var(--ok)" onclick="repairMove('${r.id}','${r.cartId}')">✅ 수리완료</button>`
+      :'';
+    return `<tr>
     <td>${r.date}</td>
     <td><b>${r.cartId}</b></td>
-    <td><span class="badge ${r.type==='입고'?'st-ok':r.type==='출고'?'st-ng':r.type==='출고 대기(사내)'?'st-warn':'st-blue'}">${r.type}</span></td>
-    <td>${r.from||'—'}</td>
+    <td><span class="badge ${typeBadge}">${r.type}</span></td>
     <td>${r.to||'—'}</td>
     <td>${r.qty||1}</td>
     <td>${r.who||'—'}</td>
     <td style="color:var(--mut);font-size:12px">${r.memo||'—'}</td>
-  </tr>`).join('');
+    <td>${repairBtn}</td>
+  </tr>`;
+  }).join('');
   return `<div class="tbl-wrap"><table>
-    <thead><tr><th>날짜</th><th>대차</th><th>유형</th><th>출발지</th><th>도착지</th><th>수량</th><th>담당자</th><th>메모</th></tr></thead>
+    <thead><tr><th>날짜</th><th>대차</th><th>유형</th><th>도착지</th><th>수량</th><th>담당자</th><th>메모</th><th>조작</th></tr></thead>
     <tbody>${rows||'<tr><td colspan="8"><div class="empty">입출고 기록 없음</div></td></tr>'}</tbody>
   </table></div>`;
 }
