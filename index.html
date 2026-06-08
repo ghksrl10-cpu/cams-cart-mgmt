@@ -936,8 +936,22 @@ async function saveInsp(){
       INSPECTIONS.unshift(d);
       if(CARTS[cartId]) CARTS[cartId].status=ns;
     }
+    // ── 프레임 이상 → 입출고 자동 등록 ──────────────
+    let autoMoveCount=0;
+    if(checks.frame==='이상있음'){
+      const moveBatch=db.batch();
+      for(const cartId of selected){
+        const mRef=db.collection('movements').doc();
+        const mData={cartId,date,type:'입고 대기(사내)',from:'',to:'인텍',qty:1,who:'오명진 팀장',memo,createdAt:ts};
+        moveBatch.set(mRef,mData);
+        MOVEMENTS.unshift({id:mRef.id,...mData});
+        autoMoveCount++;
+      }
+      await moveBatch.commit();
+    }
     inspPhotos=[]; hideOverlay(); setSyncStatus('저장됨 ✅');
-    alert(`점검 저장 완료!\n${selected.length}대 · 결과: ${result}`);
+    const autoMsg=autoMoveCount>0?`\n🔩 프레임 이상 → 입출고 ${autoMoveCount}건 자동 등록됨 (입고 대기(사내) · 인텍)`:'';
+    alert(`점검 저장 완료!\n${selected.length}대 · 결과: ${result}${autoMsg}`);
     renderInsp();
     if(curPage==='dash') renderDash();
   } catch(e){ hideOverlay(); alert('저장 오류: '+e.message); }
