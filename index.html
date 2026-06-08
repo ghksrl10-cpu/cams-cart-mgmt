@@ -1300,6 +1300,23 @@ async function repairMove(id, cartId){
   } catch(e){ alert('오류: '+e.message); }
 }
 
+// 구버전 유형명 → "출고 대기(사내)" 자동 통일 (백그라운드 조용히 실행)
+async function migrateMovTypes(){
+  const OLD=['입고 대기(사내)','입고 대기'];
+  const toFix=MOVEMENTS.filter(m=>OLD.includes(m.type));
+  if(!toFix.length) return;
+  try{
+    let batch=db.batch(); let cnt=0;
+    for(const m of toFix){
+      batch.update(db.collection('movements').doc(m.id),{type:'출고 대기(사내)'});
+      m.type='출고 대기(사내)'; // 메모리 즉시 반영
+      if(++cnt>=499){ await batch.commit(); batch=db.batch(); cnt=0; }
+    }
+    if(cnt>0) await batch.commit();
+    renderMove(); // 화면 갱신
+  } catch(e){ console.warn('migrateMovTypes 오류:', e); }
+}
+
 /* ======================================================
    공통 유틸
    ====================================================== */
