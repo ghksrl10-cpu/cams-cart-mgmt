@@ -1437,6 +1437,7 @@ window.addEventListener('DOMContentLoaded', async ()=>{
     await loadAll();
     setSyncStatus('동기화 완료 ✅');
     try{ render(curPage); }catch(e2){ console.error('render2 오류:', e2); }
+    if(db) migrateMovTypes(); // 구버전 유형명 자동 통일
   } catch(e){
     setSyncStatus('⚠️ 로드 실패 — 새로고침 해주세요');
     console.error('loadAll 오류:', e);
