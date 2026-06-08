@@ -1217,12 +1217,11 @@ function buildMoveForm(){
     <div class="fg"><label>대차 *</label><select id="mv_cart">${cartSelectOpts()}</select></div>
     <div class="fg"><label>날짜 *</label><input type="date" id="mv_date" value="${today()}"></div>
     <div class="fg"><label>유형 *</label>
-      <select id="mv_type"><option>입고</option><option>출고</option><option>이동</option><option>입고 대기(사내)</option></select>
+      <select id="mv_type"><option>입고</option><option>출고</option><option>이동</option><option>출고 대기(사내)</option></select>
     </div>
   </div>
   <div class="frow">
-    <div class="fg"><label>출발지</label><input id="mv_from" placeholder="예: 창고, 수리실"></div>
-    <div class="fg"><label>도착지</label><input id="mv_to" placeholder="예: 1LINE, 2LINE"></div>
+    <div class="fg"><label>도착지</label><input id="mv_to" placeholder="예: 1LINE, 2LINE, 인텍"></div>
     <div class="fg"><label>수량</label><input type="number" id="mv_qty" value="1" min="1" style="max-width:80px"></div>
   </div>
   <div class="frow">
