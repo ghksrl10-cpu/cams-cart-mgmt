@@ -1220,7 +1220,7 @@ function buildMoveHist(){
   const rows=MOVEMENTS.slice(0,100).map(r=>`<tr>
     <td>${r.date}</td>
     <td><b>${r.cartId}</b></td>
-    <td><span class="badge ${r.type==='입고'?'st-ok':r.type==='출고'?'st-ng':'st-blue'}">${r.type}</span></td>
+    <td><span class="badge ${r.type==='입고'?'st-ok':r.type==='출고'?'st-ng':r.type==='입고 대기(사내)'?'st-warn':'st-blue'}">${r.type}</span></td>
     <td>${r.from||'—'}</td>
     <td>${r.to||'—'}</td>
     <td>${r.qty||1}</td>
