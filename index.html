@@ -1032,9 +1032,12 @@ async function autoRegFrameMoves(){
       const mRef=db.collection('movements').doc();
       const mData={cartId:r.cartId,date:r.date,type:'반출 대기(사내)',from:'',to:'인텍',qty:1,who:'오명진 팀장',memo:r.memo||'',createdAt:ts};
       batch.set(mRef,mData);
+      // 대차 상태 → 점검대기로 동기화
+      batch.update(db.collection('carts').doc(r.cartId),{status:'점검대기',updatedAt:ts});
       MOVEMENTS.push({id:mRef.id,...mData});
-      cnt++;
-      if(cnt>=499){ await batch.commit(); done+=cnt; batch=db.batch(); cnt=0; showOverlay(`입출고 등록 중… (${done} / ${toAdd.length})`); }
+      if(CARTS[r.cartId]) CARTS[r.cartId].status='점검대기';
+      cnt+=2;
+      if(cnt>=498){ await batch.commit(); done+=cnt/2; batch=db.batch(); cnt=0; showOverlay(`입출고 등록 중… (${done} / ${toAdd.length})`); }
     }
     if(cnt>0) await batch.commit();
     MOVEMENTS.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
