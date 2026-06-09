@@ -1286,6 +1286,27 @@ function buildMoveHist(){
   </table></div>`;
 }
 
+async function clearOtherMoves(){
+  const KEEP=['반출 대기(사내)','입고 대기(사내)','입고 대기','수리완료'];
+  const toDel=MOVEMENTS.filter(r=>!KEEP.includes(r.type));
+  if(!toDel.length){ alert('삭제할 항목이 없습니다.'); return; }
+  if(!confirm(`반출 대기(사내) · 수리완료 제외\n나머지 ${toDel.length}건을 삭제하시겠습니까?\n\n⚠️ 복구 불가`)) return;
+  showOverlay(`삭제 중… (0 / ${toDel.length})`);
+  try{
+    let batch=db.batch(); let cnt=0; let done=0;
+    for(const m of toDel){
+      batch.delete(db.collection('movements').doc(m.id));
+      if(++cnt>=499){ await batch.commit(); done+=cnt; batch=db.batch(); cnt=0; showOverlay(`삭제 중… (${done} / ${toDel.length})`); }
+    }
+    if(cnt>0) await batch.commit();
+    const delIds=new Set(toDel.map(m=>m.id));
+    MOVEMENTS=MOVEMENTS.filter(m=>!delIds.has(m.id));
+    hideOverlay(); setSyncStatus('삭제 완료 ✅');
+    alert(`${toDel.length}건 삭제 완료`);
+    renderMove();
+  } catch(e){ hideOverlay(); alert('오류: '+e.message); }
+}
+
 async function repairMove(id, cartId){
   if(!confirm(`대차 ${cartId}\n수리 완료 처리하시겠습니까?\n\n유형이 "수리완료"로 변경되고\n대차 상태가 정상운용으로 복구됩니다.`)) return;
   try{
