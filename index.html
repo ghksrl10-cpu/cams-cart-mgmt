@@ -1338,12 +1338,35 @@ async function migrateMovTypes(){
     let batch=db.batch(); let cnt=0;
     for(const m of toFix){
       batch.update(db.collection('movements').doc(m.id),{type:'반출 대기(사내)'});
-      m.type='반출 대기(사내)'; // 메모리 즉시 반영
+      m.type='반출 대기(사내)';
       if(++cnt>=499){ await batch.commit(); batch=db.batch(); cnt=0; }
     }
     if(cnt>0) await batch.commit();
-    renderMove(); // 화면 갱신
+    renderMove();
   } catch(e){ console.warn('migrateMovTypes 오류:', e); }
+}
+
+// 반출 대기(사내) 중 대차 상태가 점검대기 아닌 것 → 점검대기로 강제 동기화
+async function syncWaitingCartStatus(){
+  // 수리완료 처리된 대차는 제외
+  const repairedIds=new Set(MOVEMENTS.filter(m=>m.type==='수리완료').map(m=>m.cartId));
+  const waitIds=[...new Set(
+    MOVEMENTS.filter(m=>m.type==='반출 대기(사내)'&&!repairedIds.has(m.cartId)).map(m=>m.cartId)
+  )];
+  const toFix=waitIds.filter(id=>CARTS[id]&&CARTS[id].status!=='점검대기'&&CARTS[id].status!=='수리중');
+  if(!toFix.length) return;
+  try{
+    const ts=firebase.firestore.FieldValue.serverTimestamp();
+    let batch=db.batch(); let cnt=0;
+    for(const id of toFix){
+      batch.update(db.collection('carts').doc(id),{status:'점검대기',updatedAt:ts});
+      CARTS[id].status='점검대기';
+      if(++cnt>=499){ await batch.commit(); batch=db.batch(); cnt=0; }
+    }
+    if(cnt>0) await batch.commit();
+    renderDash(); // 메인 카운트 갱신
+    if(curPage==='carts') renderCarts();
+  } catch(e){ console.warn('syncWaitingCartStatus 오류:', e); }
 }
 
 /* ======================================================
