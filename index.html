@@ -1275,7 +1275,12 @@ function buildMoveHist(){
     <td>${repairBtn}</td>
   </tr>`;
   }).join('');
-  return `<div class="tbl-wrap"><table>
+  const delCount=MOVEMENTS.filter(r=>!['반출 대기(사내)','입고 대기(사내)','입고 대기'].includes(r.type)&&r.type!=='수리완료').length;
+  return `
+  <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+    ${delCount>0?`<button class="btn sm danger" onclick="clearOtherMoves()">🗑 반출 대기 외 ${delCount}건 삭제</button>`:''}
+  </div>
+  <div class="tbl-wrap"><table>
     <thead><tr><th>날짜</th><th>대차</th><th>유형</th><th>도착지</th><th>수량</th><th>담당자</th><th>메모</th><th>조작</th></tr></thead>
     <tbody>${rows||'<tr><td colspan="8"><div class="empty">입출고 기록 없음</div></td></tr>'}</tbody>
   </table></div>`;
