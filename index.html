@@ -1075,6 +1075,7 @@ async function autoRegFrameMoves(){
     }
     if(cnt>0) await batch.commit();
     MOVEMENTS.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+    sendTeamsAlert(toAdd.map(r=>r.cartId), toAdd[0]?.date||'', toAdd.map(r=>r.memo||'').filter(Boolean).join(' / ')||'일괄 등록');
     hideOverlay(); setSyncStatus('저장됨 ✅');
     alert(`입출고 자동 등록 완료!\n${toAdd.length}건 등록됨 (유형: 반출 대기(사내) · 도착지: 인텍)`);
     if(curPage==='move') renderMove();
