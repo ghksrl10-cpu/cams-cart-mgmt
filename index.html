@@ -345,7 +345,7 @@ async function loadAll(){
     'Firestore 연결 시간 초과 (15초)<br><small style="font-weight:400;font-size:14px">네트워크를 확인하고 새로고침 해주세요</small>'
   )),15000));
   const [cArr,iArr,mArr]=await Promise.race([
-    Promise.all([_fsGetAll('carts'),_fsQuery('inspections','createdAt'),_fsQuery('movements','createdAt')]),
+    Promise.all([_fsGetAll('carts'),_fsQuery('inspections','createdAt',2000),_fsQuery('movements','createdAt',1000)]),
     _timeout
   ]);
   CARTS={};
