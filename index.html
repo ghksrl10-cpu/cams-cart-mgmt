@@ -240,7 +240,7 @@ async function sendTeamsAlert(cartIds, date, memo){
           {type:'FactSet',facts:[
             {title:'대차',value:list.join(', ')},
             {title:'날짜',value:date},
-            {title:'담당자',value:'오명진 팀장'},
+            {title:'담당자',value:'오명진 팀장, 정상협PM'},
             {title:'도착지',value:'IMS'},
             {title:'메모',value:memo||'—'}
           ]}
@@ -998,7 +998,7 @@ async function saveInsp(){
       const moveBatch=db.batch();
       for(const cartId of selected){
         const mRef=db.collection('movements').doc();
-        const mData={cartId,date,type:'반출 대기(사내)',from:'',to:'IMS',qty:1,who:'오명진 팀장',memo,createdAt:ts};
+        const mData={cartId,date,type:'반출 대기(사내)',from:'',to:'IMS',qty:1,who:'오명진 팀장, 정상협PM',memo,createdAt:ts};
         moveBatch.set(mRef,mData);
         MOVEMENTS.unshift({id:mRef.id,...mData});
         autoMoveCount++;
@@ -1079,7 +1079,7 @@ async function autoRegFrameMoves(){
   if(toAdd.length===0){ alert('프레임 이상 이력 '+frameNG.length+'건이 모두 이미 입출고 등록되어 있습니다.'); return; }
   const ok=confirm(
     `프레임 이상 ${frameNG.length}건 중 미등록 ${toAdd.length}건을 입출고 자동 등록하시겠습니까?\n\n`+
-    `유형: 반출 대기(사내)\n도착지: IMS\n담당자: 오명진 팀장\n메모: 점검 메모 그대로`
+    `유형: 반출 대기(사내)\n도착지: IMS\n담당자: 오명진 팀장, 정상협PM\n메모: 점검 메모 그대로`
   );
   if(!ok) return;
   showOverlay(`입출고 등록 중… (0 / ${toAdd.length})`);
@@ -1088,7 +1088,7 @@ async function autoRegFrameMoves(){
     let batch=db.batch(); let cnt=0; let done=0;
     for(const r of toAdd){
       const mRef=db.collection('movements').doc();
-      const mData={cartId:r.cartId,date:r.date,type:'반출 대기(사내)',from:'',to:'IMS',qty:1,who:'오명진 팀장',memo:r.memo||'',createdAt:ts};
+      const mData={cartId:r.cartId,date:r.date,type:'반출 대기(사내)',from:'',to:'IMS',qty:1,who:'오명진 팀장, 정상협PM',memo:r.memo||'',createdAt:ts};
       batch.set(mRef,mData);
       // 대차 상태 → 점검대기로 동기화
       batch.update(db.collection('carts').doc(r.cartId),{status:'점검대기',updatedAt:ts});
