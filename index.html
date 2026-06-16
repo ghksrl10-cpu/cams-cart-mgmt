@@ -247,10 +247,7 @@ async function sendTeamsAlert(cartIds, date, memo){
       }]
     };
     const opts={method:'POST',mode:'no-cors',body:JSON.stringify(payload)};
-    await Promise.all([
-      fetch(TEAMS_WEBHOOK,opts),
-      fetch(TEAMS_CHAT_WEBHOOK,opts)
-    ]);
+    await Promise.all(TEAMS_WEBHOOKS.map(url=>fetch(url,opts)));
   } catch(e){ console.warn('Teams 알람 오류:',e); }
 }
 
