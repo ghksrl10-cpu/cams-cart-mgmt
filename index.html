@@ -1563,6 +1563,8 @@ async function refreshAll(){
   showOverlay('🔄 새로고침 중…');
   try{
     await loadAll(); hideOverlay(); setSyncStatus('동기화 완료 ✅'); render(curPage);
+    if(db) syncWaitingCartStatus();
+    if(db) syncNGCartStatus();
   } catch(e){ showOverlay('오류: '+e.message); }
 }
 
