@@ -1213,6 +1213,66 @@ async function deleteInspByDate(){
   } catch(e){ hideOverlay(); alert('오류: '+e.message); }
 }
 
+function openEditInsp(id){
+  const r=INSPECTIONS.find(i=>i.id===id); if(!r) return;
+  const chk=r.checks||{};
+  const opts=(vals,cur)=>vals.map(v=>`<option${v===cur?' selected':''}>${v}</option>`).join('');
+  document.body.insertAdjacentHTML('beforeend',`
+<div id="editInspModal" class="modal-bg" onclick="if(event.target===this)closeModal('editInspModal')">
+  <div class="modal">
+    <div class="modal-h"><h3>✏️ 점검 기록 수정 — ${r.cartId}</h3><button class="btn sm" onclick="closeModal('editInspModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="frow">
+        <div class="fg"><label>날짜</label><input type="date" id="ei_date" value="${r.date}"></div>
+        <div class="fg"><label>점검자</label><input id="ei_who" value="${esc(r.inspector||'')}"></div>
+      </div>
+      <div class="check-grid" style="margin-top:10px">
+        <div class="fg"><label>바퀴(캐스터)</label><select id="ei_wheels">${opts(['정상','이상있음'],chk.wheels)}</select></div>
+        <div class="fg"><label>프레임/용접부</label><select id="ei_frame">${opts(['정상','이상있음'],chk.frame)}</select></div>
+        <div class="fg"><label>쇼바</label><select id="ei_shoba">${opts(['정상','이상있음'],chk.shoba)}</select></div>
+        <div class="fg"><label>적재/고정장치</label><select id="ei_fixtures">${opts(['정상','이상있음'],chk.fixtures)}</select></div>
+        <div class="fg"><label>청소/이물질</label><select id="ei_clean">${opts(['청결','불량'],chk.clean)}</select></div>
+      </div>
+      <div class="frow" style="margin-top:10px">
+        <div class="fg"><label>점검완료</label><select id="ei_done">${opts(['false','true'],String(!!r.done))}</select></div>
+        <div class="fg"><label>교체완료</label><select id="ei_replaced">${opts(['false','true'],String(!!r.replaced))}</select></div>
+      </div>
+      <div class="frow"><div class="fg"><label>메모</label><textarea id="ei_memo" style="width:100%">${esc(r.memo||'')}</textarea></div></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('editInspModal')">취소</button>
+      <button class="btn pri" onclick="saveEditInsp('${id}')">💾 저장</button>
+    </div>
+  </div>
+</div>`);
+}
+
+async function saveEditInsp(id){
+  const r=INSPECTIONS.find(i=>i.id===id); if(!r) return;
+  const date=document.getElementById('ei_date')?.value||r.date;
+  const inspector=document.getElementById('ei_who')?.value.trim()||'';
+  const checks={
+    wheels:document.getElementById('ei_wheels')?.value||'정상',
+    frame:document.getElementById('ei_frame')?.value||'정상',
+    shoba:document.getElementById('ei_shoba')?.value||'정상',
+    fixtures:document.getElementById('ei_fixtures')?.value||'정상',
+    clean:document.getElementById('ei_clean')?.value||'청결',
+  };
+  const done=document.getElementById('ei_done')?.value==='true';
+  const replaced=document.getElementById('ei_replaced')?.value==='true';
+  const memo=document.getElementById('ei_memo')?.value.trim()||'';
+  const allNormal=checks.wheels==='정상'&&checks.frame==='정상'&&checks.shoba==='정상'&&checks.fixtures==='정상'&&checks.clean==='청결';
+  const result=(allNormal||(done&&replaced))?'OK':'NG';
+  try{
+    const ts=firebase.firestore.FieldValue.serverTimestamp();
+    await db.collection('inspections').doc(id).update({date,inspector,checks,done,replaced,result,memo,updatedAt:ts});
+    Object.assign(r,{date,inspector,checks,done,replaced,result,memo});
+    closeModal('editInspModal');
+    setSyncStatus('저장됨 ✅');
+    renderInsp(); renderDash();
+  } catch(e){ alert('저장 오류: '+e.message); }
+}
+
 async function deleteInsp(id){
   if(!checkAdmin()) return;
   if(!confirm('이 점검 기록을 삭제하시겠습니까?')) return;
