@@ -455,7 +455,7 @@ function renderDash(){
 
 <!-- 차트 2열 -->
 <div class="two-col" style="margin-bottom:16px">
-  <div style="background:#1a1d24;border:1px solid var(--bd);border-radius:12px;padding:16px 18px">
+  <div style="background:#ffffff;border:1px solid var(--bd);border-radius:12px;padding:16px 18px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
     <div style="font-size:13px;font-weight:800;color:var(--mut);margin-bottom:14px">🥧 대차 상태 분포</div>
     <div style="position:relative;height:200px"><canvas id="chartStatus"></canvas></div>
     <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;justify-content:center">
@@ -463,14 +463,14 @@ function renderDash(){
         .map(([l,c,n])=>`<span style="font-size:12px;display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:50%;background:${c};display:inline-block"></span>${l} <b>${n}</b></span>`).join('')}
     </div>
   </div>
-  <div style="background:#1a1d24;border:1px solid var(--bd);border-radius:12px;padding:16px 18px">
+  <div style="background:#ffffff;border:1px solid var(--bd);border-radius:12px;padding:16px 18px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
     <div style="font-size:13px;font-weight:800;color:var(--mut);margin-bottom:14px">📊 라인별 현황</div>
     <div style="position:relative;height:200px"><canvas id="chartLine"></canvas></div>
   </div>
 </div>
 
 <!-- 점검 추이 -->
-<div style="background:#1a1d24;border:1px solid var(--bd);border-radius:12px;padding:16px 18px;margin-bottom:16px">
+<div style="background:#ffffff;border:1px solid var(--bd);border-radius:12px;padding:16px 18px;box-shadow:0 1px 4px rgba(0,0,0,.06);margin-bottom:16px">
   <div style="font-size:13px;font-weight:800;color:var(--mut);margin-bottom:14px">📈 최근 10일 점검 결과</div>
   <div style="position:relative;height:140px"><canvas id="chartTrend"></canvas></div>
 </div>
