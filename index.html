@@ -242,12 +242,11 @@ async function sendTeamsAlert(cartIds, date, memo){
         }
       }]
     };
-    // no-cors: CORS 우회하여 전송 (응답 확인 불가하지만 요청은 전달됨)
-    await fetch(TEAMS_WEBHOOK,{
-      method:'POST',
-      mode:'no-cors',
-      body:JSON.stringify(payload)
-    });
+    const opts={method:'POST',mode:'no-cors',body:JSON.stringify(payload)};
+    await Promise.all([
+      fetch(TEAMS_WEBHOOK,opts),
+      fetch(TEAMS_CHAT_WEBHOOK,opts)
+    ]);
   } catch(e){ console.warn('Teams 알람 오류:',e); }
 }
 
