@@ -1492,6 +1492,31 @@ async function migrateMovTypes(){
   } catch(e){ console.warn('migrateMovTypes 오류:', e); }
 }
 
+// 최신 점검 결과가 NG인 대차 → 점검대기로 동기화
+async function syncNGCartStatus(){
+  const latestInsp={};
+  for(const r of INSPECTIONS){
+    if(!latestInsp[r.cartId]||r.date>latestInsp[r.cartId].date) latestInsp[r.cartId]=r;
+  }
+  const toFix=Object.keys(CARTS).filter(cartId=>{
+    const insp=latestInsp[cartId];
+    return insp&&insp.result!=='OK'&&!insp.done&&CARTS[cartId].status==='정상운용';
+  });
+  if(!toFix.length) return;
+  try{
+    const ts=firebase.firestore.FieldValue.serverTimestamp();
+    let batch=db.batch(); let cnt=0;
+    for(const cartId of toFix){
+      batch.update(db.collection('carts').doc(cartId),{status:'점검대기',updatedAt:ts});
+      CARTS[cartId].status='점검대기';
+      if(++cnt>=499){ await batch.commit(); batch=db.batch(); cnt=0; }
+    }
+    if(cnt>0) await batch.commit();
+    renderDash();
+    if(curPage==='carts') renderCarts();
+  } catch(e){ console.warn('syncNGCartStatus 오류:',e); }
+}
+
 // 반출 대기(사내) 중 대차 상태가 점검대기 아닌 것 → 점검대기로 강제 동기화
 async function syncWaitingCartStatus(){
   // 수리완료 처리된 대차는 제외
