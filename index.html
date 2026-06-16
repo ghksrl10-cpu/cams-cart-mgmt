@@ -1370,6 +1370,17 @@ async function clearOtherMoves(){
   } catch(e){ hideOverlay(); alert('오류: '+e.message); }
 }
 
+async function deleteMove(id){
+  const m=MOVEMENTS.find(r=>r.id===id); if(!m) return;
+  if(!confirm(`[${m.type}] ${m.cartId} (${m.date})\n이 항목을 삭제하시겠습니까?\n\n⚠️ 복구 불가`)) return;
+  try{
+    await db.collection('movements').doc(id).delete();
+    MOVEMENTS=MOVEMENTS.filter(r=>r.id!==id);
+    setSyncStatus('삭제 완료 ✅');
+    renderMove();
+  } catch(e){ alert('삭제 오류: '+e.message); }
+}
+
 async function repairMove(id, cartId){
   if(!confirm(`대차 ${cartId}\n수리 완료 처리하시겠습니까?\n\n유형이 "수리완료"로 변경되고\n대차 상태가 정상운용으로 복구됩니다.`)) return;
   try{
