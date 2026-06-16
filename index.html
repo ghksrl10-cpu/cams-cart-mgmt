@@ -217,6 +217,7 @@ let _charts = {};
 
 /* ===== Teams 웹훅 ===== */
 const TEAMS_WEBHOOK='https://defaultc0cb4e4b345c43eb859beb9397bfbb.de.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/1d97dd3558f045918982422dc3037a3f/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=f6zDMVg3T8LXgTps_koN43AlMp1HNUF5eAfpiOmujBc';
+const TEAMS_CHAT_WEBHOOK='https://defaultc0cb4e4b345c43eb859beb9397bfbb.de.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/c30d80af8a5b4cb6ae171359b5267d45/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=UoRyUjscu8OdC8wCBgzs6aGxUIhQd_Kuk-FSAiiiVP8';
 async function sendTeamsAlert(cartIds, date, memo){
   try{
     const list=Array.isArray(cartIds)?cartIds:[cartIds];
