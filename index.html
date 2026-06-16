@@ -1091,6 +1091,31 @@ function buildInspHist(){
     <tbody>${rows||'<tr><td colspan="14"><div class="empty">검색 결과 없음</div></td></tr>'}</tbody>
   </table></div>`;
 }
+function toggleAllInspChk(checked){
+  document.querySelectorAll('.insp-chk').forEach(c=>c.checked=checked);
+}
+
+async function deleteSelectedInsp(){
+  const ids=[...document.querySelectorAll('.insp-chk:checked')].map(c=>c.dataset.id);
+  if(!ids.length){ alert('삭제할 항목을 선택해주세요.'); return; }
+  if(!checkAdmin()) return;
+  if(!confirm(`선택한 ${ids.length}건을 삭제하시겠습니까?\n\n⚠️ 복구 불가`)) return;
+  showOverlay(`삭제 중… (0 / ${ids.length})`);
+  try{
+    let batch=db.batch(); let cnt=0; let done=0;
+    for(const id of ids){
+      batch.delete(db.collection('inspections').doc(id));
+      if(++cnt>=499){ await batch.commit(); done+=cnt; batch=db.batch(); cnt=0; showOverlay(`삭제 중… (${done} / ${ids.length})`); }
+    }
+    if(cnt>0) await batch.commit();
+    const delSet=new Set(ids);
+    INSPECTIONS=INSPECTIONS.filter(r=>!delSet.has(r.id));
+    hideOverlay(); setSyncStatus('삭제 완료 ✅');
+    alert(`${ids.length}건 삭제 완료`);
+    renderInsp(); renderDash();
+  } catch(e){ hideOverlay(); alert('오류: '+e.message); }
+}
+
 function chkBadge(v,ok){ return `<span class="badge ${v===ok?'st-ok':'st-ng'}">${v||'—'}</span>`; }
 
 async function autoRegFrameMoves(){
