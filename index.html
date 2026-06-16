@@ -1084,6 +1084,7 @@ function buildInspHist(){
     <button class="btn" style="background:var(--warnbg);color:var(--warn);border-color:var(--warn);white-space:nowrap" onclick="autoRegFrameMoves()">🔩 프레임이상 입출고 일괄등록</button>
     <button class="btn" style="background:#1e3a5f;color:#60a5fa;border-color:#3b82f6;white-space:nowrap" onclick="testTeamsAlert()">📣 Teams 알람 테스트</button>
     <button class="btn danger" style="white-space:nowrap" onclick="deleteInspByDate()">🗑 날짜별 일괄삭제</button>
+    <button class="btn danger" style="white-space:nowrap" onclick="deleteSelectedInsp()">🗑 선택 삭제</button>
   </div>
   <div class="tbl-wrap"><table>
     <thead><tr><th style="text-align:center"><input type="checkbox" id="inspChkAll" style="width:16px;height:16px;cursor:pointer" onclick="toggleAllInspChk(this.checked)"></th><th>날짜</th><th>대차</th><th>점검자</th><th>바퀴</th><th>프레임</th><th>쇼바</th><th>적재장치</th><th>청소</th><th>결과</th><th>점검완료</th><th>교체완료</th><th>메모</th><th>사진</th><th>조작</th></tr></thead>
