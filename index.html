@@ -1017,6 +1017,14 @@ async function saveInsp(){
 let histSearch='';
 let histNgOnly=false;
 let histDateFilter='';
+let inspUnlocked=false;
+
+function unlockInspHist(){
+  if(inspUnlocked){ inspUnlocked=false; histNgOnly=false; renderInsp(); return; }
+  if(!checkAdmin()) return;
+  inspUnlocked=true;
+  renderInsp();
+}
 
 function buildInspRow(r){
   const isNG=r.result!=='OK';
