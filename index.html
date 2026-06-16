@@ -215,6 +215,39 @@ const firebaseConfig = {
 let db = null;
 let _charts = {};
 
+/* ===== Teams 웹훅 ===== */
+const TEAMS_WEBHOOK='https://defaultc0cb4e4b345c43eb859beb9397bfbb.de.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/1d97dd3558f045918982422dc3037a3f/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=f6zDMVg3T8LXgTps_koN43AlMp1HNUF5eAfpiOmujBc';
+async function sendTeamsAlert(cartIds, date, memo){
+  try{
+    const list=Array.isArray(cartIds)?cartIds:[cartIds];
+    await fetch(TEAMS_WEBHOOK,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        type:'message',
+        attachments:[{
+          contentType:'application/vnd.microsoft.card.adaptive',
+          content:{
+            $schema:'http://adaptivecards.io/schemas/adaptive-card.json',
+            type:'AdaptiveCard',
+            version:'1.4',
+            body:[
+              {type:'TextBlock',text:'🔩 반출 대기(사내) 신규 등록',weight:'Bolder',size:'Large',color:'Warning'},
+              {type:'FactSet',facts:[
+                {title:'대차',value:list.join(', ')},
+                {title:'날짜',value:date},
+                {title:'담당자',value:'오명진 팀장'},
+                {title:'도착지',value:'인텍'},
+                {title:'메모',value:memo||'—'}
+              ]}
+            ]
+          }
+        }]
+      })
+    });
+  } catch(e){ console.warn('Teams 알람 오류:',e); }
+}
+
 /* ===== 메모리 상태 ===== */
 let CARTS = {};       // cartId → {id, name, location, status, memo, ...}
 let INSPECTIONS = []; // [{id, cartId, date, inspector, checks, result, memo, photos}]
