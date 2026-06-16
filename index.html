@@ -1052,17 +1052,20 @@ function buildInspRow(r){
 }
 
 function filterInspRows(){
-  histSearch=document.getElementById('histSearchInp')?.value||'';
-  histDateFilter=document.getElementById('histDateInp')?.value||'';
+  if(inspUnlocked){
+    histSearch=document.getElementById('histSearchInp')?.value||'';
+    histDateFilter=document.getElementById('histDateInp')?.value||'';
+  }
   const tbody=document.querySelector('#pg-insp .tbl-wrap tbody');
   if(!tbody) return;
-  const lq=histSearch.toLowerCase();
+  const forceNg=!inspUnlocked;
+  const lq=inspUnlocked?histSearch.toLowerCase():'';
   const filtered=INSPECTIONS.filter(r=>{
     const matchSearch=!lq||
       (r.cartId||'').toLowerCase().includes(lq)||
       (r.inspector||'').toLowerCase().includes(lq)||
       (r.date||'').includes(lq);
-    const matchNg=!histNgOnly||(r.result!=='OK');
+    const matchNg=(forceNg||histNgOnly)?(r.result!=='OK'):true;
     const matchDate=!histDateFilter||r.date===histDateFilter;
     return matchSearch&&matchNg&&matchDate;
   });
