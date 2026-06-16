@@ -726,7 +726,7 @@ function buildInspForm(){
   <h3>대차 선택 <span id="selCount" style="color:var(--blue);font-size:14px;font-weight:700;margin-left:6px">0대 선택</span></h3>
   <!-- 검색 + 전체선택/해제 -->
   <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
-    <input id="cartFilterInp" placeholder="🔍 번호·이름 검색…" style="flex:1;min-width:160px;padding:8px 10px;border:1px solid var(--bd);border-radius:8px;font-size:14px;background:#0f1117;color:#f1f5f9" oninput="filterCartChk(this.value)">
+    <input id="cartFilterInp" placeholder="🔍 번호·이름 검색…" style="flex:1;min-width:160px;padding:8px 10px;border:1px solid var(--bd);border-radius:8px;font-size:14px;background:#ffffff;color:#0f172a" oninput="filterCartChk(this.value)">
     <button class="btn ok" style="font-size:12px;padding:6px 12px" onclick="selectAllCartChk(true)">전체 선택</button>
     <button class="btn danger" style="font-size:12px;padding:6px 12px" onclick="selectAllCartChk(false)">전체 해제</button>
   </div>
@@ -1170,7 +1170,7 @@ function openFollowUp(id){
       <!-- 후속 메모 -->
       <div style="margin-bottom:14px">
         <label style="font-size:12px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:5px">후속 메모</label>
-        <textarea id="fu_memo" style="width:100%;padding:9px 10px;border:1px solid var(--bd);border-radius:8px;font-size:14px;background:#0f1117;color:#f1f5f9;min-height:60px;font-family:inherit" placeholder="후속 조치 내용, 메모…">${esc(r.memo||'')}</textarea>
+        <textarea id="fu_memo" style="width:100%;padding:9px 10px;border:1px solid var(--bd);border-radius:8px;font-size:14px;background:#ffffff;color:#0f172a;min-height:60px;font-family:inherit" placeholder="후속 조치 내용, 메모…">${esc(r.memo||'')}</textarea>
       </div>
       <!-- 기존 사진 썸네일 -->
       ${existThumb}
