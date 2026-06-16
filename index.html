@@ -1326,6 +1326,7 @@ function buildMoveHist(){
     const repairBtn=isWait
       ?`<button class="btn sm" style="background:var(--okbg);color:var(--ok);border-color:var(--ok)" onclick="repairMove('${r.id}','${r.cartId}')">✅ 수리완료</button>`
       :'';
+    const delBtn=`<button class="btn sm danger" onclick="deleteMove('${r.id}')" title="삭제">🗑</button>`;
     return `<tr>
     <td>${r.date}</td>
     <td><b>${r.cartId}</b></td>
@@ -1334,7 +1335,7 @@ function buildMoveHist(){
     <td>${r.qty||1}</td>
     <td>${r.who||'—'}</td>
     <td style="color:var(--mut);font-size:12px">${r.memo||'—'}</td>
-    <td>${repairBtn}</td>
+    <td style="display:flex;gap:4px;align-items:center">${repairBtn}${delBtn}</td>
   </tr>`;
   }).join('');
   const delCount=MOVEMENTS.filter(r=>!['반출 대기(사내)','입고 대기(사내)','입고 대기'].includes(r.type)&&r.type!=='수리완료').length;
