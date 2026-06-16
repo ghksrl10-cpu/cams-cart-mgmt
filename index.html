@@ -497,7 +497,7 @@ function renderDash(){
       type:'doughnut',
       data:{
         labels:['정상운용','점검대기','수리중','폐기대기'],
-        datasets:[{data:[st정상,st점검,st수리,st폐기],backgroundColor:['#22c55e','#f59e0b','#ef4444','#6b7280'],borderColor:'#1a1d24',borderWidth:3,hoverOffset:6}]
+        datasets:[{data:[st정상,st점검,st수리,st폐기],backgroundColor:['#22c55e','#f59e0b','#ef4444','#6b7280'],borderColor:'#ffffff',borderWidth:3,hoverOffset:6}]
       },
       options:{responsive:true,maintainAspectRatio:false,cutout:'68%',
         plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed}대 (${Math.round(ctx.parsed/total*100)}%)`}}}
