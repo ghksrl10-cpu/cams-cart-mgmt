@@ -1071,19 +1071,21 @@ function filterInspRows(){
 
 function buildInspHist(){
   const ngTotal=INSPECTIONS.filter(r=>r.result!=='OK').length;
-  const lq=histSearch.toLowerCase();
+  // 잠금 상태에서는 NG만 강제 표시
+  const forceNg=!inspUnlocked;
+  const lq=inspUnlocked?histSearch.toLowerCase():'';
   const filtered=INSPECTIONS.filter(r=>{
     const matchSearch=!lq||
       (r.cartId||'').toLowerCase().includes(lq)||
       (r.inspector||'').toLowerCase().includes(lq)||
       (r.date||'').includes(lq);
-    const matchNg=!histNgOnly||(r.result!=='OK');
+    const matchNg=(forceNg||histNgOnly)?(r.result!=='OK'):true;
     const matchDate=!histDateFilter||r.date===histDateFilter;
     return matchSearch&&matchNg&&matchDate;
   });
   const rows=filtered.slice(0,500).map(buildInspRow).join('');
-  return `
-  <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+  const lockBtn=`<button class="btn" style="${inspUnlocked?'background:#dcfce7;color:#16a34a;border-color:#16a34a':'background:#fee2e2;color:#dc2626;border-color:#dc2626'};white-space:nowrap" onclick="unlockInspHist()">${inspUnlocked?'🔓 잠금':'🔒 잠금 해제'}</button>`;
+  const adminBtns=inspUnlocked?`
     <input id="histSearchInp" style="flex:1;min-width:180px;padding:9px 12px;border:1px solid var(--bd);border-radius:9px;font-size:14px;background:#ffffff;color:#0f172a" placeholder="🔍 대차번호·점검자 검색…" value="${esc(histSearch)}" oninput="filterInspRows()">
     <input id="histDateInp" type="date" value="${histDateFilter}" onchange="filterInspRows()" style="padding:9px 10px;border:1px solid var(--bd);border-radius:9px;font-size:14px;background:#ffffff;color:#0f172a">
     <button class="btn${histNgOnly?' danger':''}" onclick="histNgOnly=!histNgOnly;filterInspRows()">
@@ -1092,10 +1094,18 @@ function buildInspHist(){
     <button class="btn" style="background:var(--warnbg);color:var(--warn);border-color:var(--warn);white-space:nowrap" onclick="autoRegFrameMoves()">🔩 프레임이상 입출고 일괄등록</button>
     <button class="btn" style="background:#1e3a5f;color:#60a5fa;border-color:#3b82f6;white-space:nowrap" onclick="testTeamsAlert()">📣 Teams 알람 테스트</button>
     <button class="btn danger" style="white-space:nowrap" onclick="deleteInspByDate()">🗑 날짜별 일괄삭제</button>
-    <button class="btn danger" style="white-space:nowrap" onclick="deleteSelectedInsp()">🗑 선택 삭제</button>
+    <button class="btn danger" style="white-space:nowrap" onclick="deleteSelectedInsp()">🗑 선택 삭제</button>`:`
+    <button class="btn${histNgOnly?' danger':''}" onclick="histNgOnly=!histNgOnly;filterInspRows()">
+      ❌ NG만 보기${ngTotal>0?` <span style="background:var(--ng);color:#fff;font-size:11px;padding:2px 7px;border-radius:10px;margin-left:4px">${ngTotal}</span>`:''}
+    </button>`;
+  const chkHead=inspUnlocked?`<th style="text-align:center"><input type="checkbox" id="inspChkAll" style="width:16px;height:16px;cursor:pointer" onclick="toggleAllInspChk(this.checked)"></th>`:`<th></th>`;
+  return `
+  <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+    ${adminBtns}
+    ${lockBtn}
   </div>
   <div class="tbl-wrap"><table>
-    <thead><tr><th style="text-align:center"><input type="checkbox" id="inspChkAll" style="width:16px;height:16px;cursor:pointer" onclick="toggleAllInspChk(this.checked)"></th><th>날짜</th><th>대차</th><th>점검자</th><th>바퀴</th><th>프레임</th><th>쇼바</th><th>적재장치</th><th>청소</th><th>결과</th><th>점검완료</th><th>교체완료</th><th>메모</th><th>사진</th><th>조작</th></tr></thead>
+    <thead><tr>${chkHead}<th>날짜</th><th>대차</th><th>점검자</th><th>바퀴</th><th>프레임</th><th>쇼바</th><th>적재장치</th><th>청소</th><th>결과</th><th>점검완료</th><th>교체완료</th><th>메모</th><th>사진</th><th>조작</th></tr></thead>
     <tbody>${rows||'<tr><td colspan="14"><div class="empty">검색 결과 없음</div></td></tr>'}</tbody>
   </table></div>`;
 }
