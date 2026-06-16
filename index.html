@@ -242,11 +242,11 @@ async function sendTeamsAlert(cartIds, date, memo){
         }
       }]
     };
-    const opts={method:'POST',mode:'no-cors',body:JSON.stringify(payload)};
-    await Promise.all([
-      fetch(TEAMS_WEBHOOK,opts),
-      fetch(TEAMS_CHAT_WEBHOOK,opts)
-    ]);
+    // 채널: 어댑티브 카드
+    fetch(TEAMS_WEBHOOK,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)});
+    // 채팅: 텍스트 형식
+    const chatText=`🔩 반출 대기(사내) 신규 등록\n대차: ${list.join(', ')}\n날짜: ${date}\n담당자: 오명진 팀장\n도착지: 인텍\n메모: ${memo||'—'}`;
+    fetch(TEAMS_CHAT_WEBHOOK,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:chatText})});
   } catch(e){ console.warn('Teams 알람 오류:',e); }
 }
 
