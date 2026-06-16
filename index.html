@@ -226,32 +226,48 @@ const TEAMS_WEBHOOKS=[
   'https://defaultc0cb4e4b345c43eb859beb9397bfbb.de.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/e566911ec6024f87873c055e9bedec08/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=zZKdVOAyC32YkXuJ3726l5bbhlaxIn_dtrWCWZt781o'
 ];
 async function sendTeamsAlert(cartIds, date, memo){
-  try{
-    const list=Array.isArray(cartIds)?cartIds:[cartIds];
-    const payload={
-      type:'message',
-      attachments:[{
-        contentType:'application/vnd.microsoft.card.adaptive',
-        content:{
-          $schema:'http://adaptivecards.io/schemas/adaptive-card.json',
-          type:'AdaptiveCard',
-          version:'1.2',
-          body:[
-            {type:'TextBlock',text:'🔩 반출 대기(사내) 신규 등록',weight:'Bolder',size:'Large',color:'Warning'},
-            {type:'FactSet',facts:[
-              {title:'대차',value:list.join(', ')},
-              {title:'날짜',value:date},
-              {title:'담당자',value:'오명진 팀장'},
-              {title:'도착지',value:'인텍'},
-              {title:'메모',value:memo||'—'}
-            ]}
-          ]
-        }
-      }]
-    };
-    const opts={method:'POST',mode:'no-cors',body:JSON.stringify(payload)};
-    await Promise.all(TEAMS_WEBHOOKS.map(url=>fetch(url,opts)));
-  } catch(e){ console.warn('Teams 알람 오류:',e); }
+  const list=Array.isArray(cartIds)?cartIds:[cartIds];
+  const payload={
+    type:'message',
+    attachments:[{
+      contentType:'application/vnd.microsoft.card.adaptive',
+      content:{
+        $schema:'http://adaptivecards.io/schemas/adaptive-card.json',
+        type:'AdaptiveCard',
+        version:'1.2',
+        body:[
+          {type:'TextBlock',text:'🔩 반출 대기(사내) 신규 등록',weight:'Bolder',size:'Large',color:'Warning'},
+          {type:'FactSet',facts:[
+            {title:'대차',value:list.join(', ')},
+            {title:'날짜',value:date},
+            {title:'담당자',value:'오명진 팀장'},
+            {title:'도착지',value:'인텍'},
+            {title:'메모',value:memo||'—'}
+          ]}
+        ]
+      }
+    }]
+  };
+  const body=JSON.stringify(payload);
+  let ok=0, fail=0;
+  await Promise.all(TEAMS_WEBHOOKS.map(async(url,i)=>{
+    try{
+      const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body});
+      console.log(`Teams[${i}] ${r.status} ${r.statusText}`);
+      ok++;
+    } catch(e){
+      console.warn(`Teams[${i}] 오류:`,e.message);
+      // CORS 에러시 no-cors 재시도
+      try{ await fetch(url,{method:'POST',mode:'no-cors',body}); ok++; }
+      catch(e2){ console.warn(`Teams[${i}] no-cors 재시도 실패:`,e2.message); fail++; }
+    }
+  }));
+  console.log(`Teams 알람: ${ok}성공 ${fail}실패 / 총${TEAMS_WEBHOOKS.length}개`);
+}
+async function testTeamsAlert(){
+  console.log('Teams 테스트 시작...');
+  await sendTeamsAlert(['테스트대차'], today(), '테스트 알람');
+  alert('콘솔(F12)에서 결과 확인하세요');
 }
 
 /* ===== 메모리 상태 ===== */
