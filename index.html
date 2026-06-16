@@ -1118,6 +1118,29 @@ function checkAdmin(){
   return false;
 }
 
+async function deleteInspByDate(){
+  if(!checkAdmin()) return;
+  const date=prompt('삭제할 날짜 입력 (예: 2026-06-16)','2026-06-16');
+  if(!date) return;
+  const targets=INSPECTIONS.filter(r=>r.date===date);
+  if(!targets.length){ alert(`${date} 점검 기록이 없습니다.`); return; }
+  if(!confirm(`${date} 점검 기록 ${targets.length}건을 전부 삭제하시겠습니까?\n\n⚠️ 복구 불가`)) return;
+  showOverlay(`삭제 중… (0 / ${targets.length})`);
+  try{
+    let batch=db.batch(); let cnt=0; let done=0;
+    for(const r of targets){
+      batch.delete(db.collection('inspections').doc(r.id));
+      if(++cnt>=499){ await batch.commit(); done+=cnt; batch=db.batch(); cnt=0; showOverlay(`삭제 중… (${done} / ${targets.length})`); }
+    }
+    if(cnt>0) await batch.commit();
+    const delIds=new Set(targets.map(r=>r.id));
+    INSPECTIONS=INSPECTIONS.filter(r=>!delIds.has(r.id));
+    hideOverlay(); setSyncStatus('삭제 완료 ✅');
+    alert(`${targets.length}건 삭제 완료`);
+    renderInsp(); renderDash();
+  } catch(e){ hideOverlay(); alert('오류: '+e.message); }
+}
+
 async function deleteInsp(id){
   if(!checkAdmin()) return;
   if(!confirm('이 점검 기록을 삭제하시겠습니까?')) return;
