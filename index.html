@@ -1086,7 +1086,7 @@ function buildInspHist(){
     <button class="btn danger" style="white-space:nowrap" onclick="deleteInspByDate()">🗑 날짜별 일괄삭제</button>
   </div>
   <div class="tbl-wrap"><table>
-    <thead><tr><th>날짜</th><th>대차</th><th>점검자</th><th>바퀴</th><th>프레임</th><th>쇼바</th><th>적재장치</th><th>청소</th><th>결과</th><th>점검완료</th><th>교체완료</th><th>메모</th><th>사진</th><th>조작</th></tr></thead>
+    <thead><tr><th style="text-align:center"><input type="checkbox" id="inspChkAll" style="width:16px;height:16px;cursor:pointer" onclick="toggleAllInspChk(this.checked)"></th><th>날짜</th><th>대차</th><th>점검자</th><th>바퀴</th><th>프레임</th><th>쇼바</th><th>적재장치</th><th>청소</th><th>결과</th><th>점검완료</th><th>교체완료</th><th>메모</th><th>사진</th><th>조작</th></tr></thead>
     <tbody>${rows||'<tr><td colspan="14"><div class="empty">검색 결과 없음</div></td></tr>'}</tbody>
   </table></div>`;
 }
