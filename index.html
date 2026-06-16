@@ -1016,8 +1016,37 @@ async function saveInsp(){
 
 let histSearch='';
 let histNgOnly=false;
+let histDateFilter='';
 
-function buildInspHist(){
+function buildInspRow(r){
+  const isNG=r.result!=='OK';
+  const rowStyle=isNG?'background:rgba(239,68,68,0.07)':'';
+  return `<tr style="${rowStyle}">
+  <td>${r.date}</td>
+  <td><b>${r.cartId}</b>${CARTS[r.cartId]?.name?'<br><span style="color:var(--mut);font-size:12px">'+CARTS[r.cartId].name+'</span>':''}</td>
+  <td>${r.inspector||'—'}</td>
+  <td>${chkBadge(r.checks?.wheels,'정상')}</td>
+  <td>${chkBadge(r.checks?.frame,'정상')}</td>
+  <td>${chkBadge(r.checks?.shoba,'정상')}</td>
+  <td>${chkBadge(r.checks?.fixtures,'정상')}</td>
+  <td>${chkBadge(r.checks?.clean,'청결')}</td>
+  <td><span class="badge ${isNG?'st-ng':'st-ok'}">${r.result}</span></td>
+  <td>${r.done?'<span class="badge st-ok">✅ 완료</span>':'<span class="badge st-mut">—</span>'}</td>
+  <td>${r.replaced?'<span class="badge st-blue">🔧 완료</span>':'<span class="badge st-mut">—</span>'}</td>
+  <td style="color:var(--mut);font-size:12px">${r.memo||'—'}</td>
+  <td>${r.photos&&r.photos.length?r.photos.map(p=>`<img src="${p.url}" onclick="viewImg('${p.url}')" style="width:56px;height:42px;object-fit:cover;border-radius:5px;border:1px solid var(--bd);cursor:pointer;margin:2px">`).join(''):'—'}</td>
+  <td style="white-space:nowrap">
+    ${isNG?`<button class="btn sm" style="background:var(--warnbg);color:var(--warn);border-color:var(--warn)" onclick="openFollowUp('${r.id}')">🔧 후속조치</button>`:''}
+    <button class="btn sm danger" style="margin-left:4px" onclick="deleteInsp('${r.id}')">삭제</button>
+  </td>
+</tr>`;
+}
+
+function filterInspRows(){
+  histSearch=document.getElementById('histSearchInp')?.value||'';
+  histDateFilter=document.getElementById('histDateInp')?.value||'';
+  const tbody=document.querySelector('#pg-insp .tbl-wrap tbody');
+  if(!tbody) return;
   const lq=histSearch.toLowerCase();
   const filtered=INSPECTIONS.filter(r=>{
     const matchSearch=!lq||
@@ -1025,36 +1054,30 @@ function buildInspHist(){
       (r.inspector||'').toLowerCase().includes(lq)||
       (r.date||'').includes(lq);
     const matchNg=!histNgOnly||(r.result!=='OK');
-    return matchSearch&&matchNg;
+    const matchDate=!histDateFilter||r.date===histDateFilter;
+    return matchSearch&&matchNg&&matchDate;
   });
+  tbody.innerHTML=filtered.slice(0,500).map(buildInspRow).join('')||'<tr><td colspan="14"><div class="empty">검색 결과 없음</div></td></tr>';
+}
+
+function buildInspHist(){
   const ngTotal=INSPECTIONS.filter(r=>r.result!=='OK').length;
-  const rows=filtered.slice(0,500).map(r=>{
-    const isNG=r.result!=='OK';
-    const rowStyle=isNG?'background:rgba(239,68,68,0.07)':'';
-    return `<tr style="${rowStyle}">
-    <td>${r.date}</td>
-    <td><b>${r.cartId}</b>${CARTS[r.cartId]?.name?'<br><span style="color:var(--mut);font-size:12px">'+CARTS[r.cartId].name+'</span>':''}</td>
-    <td>${r.inspector||'—'}</td>
-    <td>${chkBadge(r.checks?.wheels,'정상')}</td>
-    <td>${chkBadge(r.checks?.frame,'정상')}</td>
-    <td>${chkBadge(r.checks?.shoba,'정상')}</td>
-    <td>${chkBadge(r.checks?.fixtures,'정상')}</td>
-    <td>${chkBadge(r.checks?.clean,'청결')}</td>
-    <td><span class="badge ${isNG?'st-ng':'st-ok'}">${r.result}</span></td>
-    <td>${r.done?'<span class="badge st-ok">✅ 완료</span>':'<span class="badge st-mut">—</span>'}</td>
-    <td>${r.replaced?'<span class="badge st-blue">🔧 완료</span>':'<span class="badge st-mut">—</span>'}</td>
-    <td style="color:var(--mut);font-size:12px">${r.memo||'—'}</td>
-    <td>${r.photos&&r.photos.length?r.photos.map(p=>`<img src="${p.url}" onclick="viewImg('${p.url}')" style="width:56px;height:42px;object-fit:cover;border-radius:5px;border:1px solid var(--bd);cursor:pointer;margin:2px">`).join(''):'—'}</td>
-    <td style="white-space:nowrap">
-      ${isNG?`<button class="btn sm" style="background:var(--warnbg);color:var(--warn);border-color:var(--warn)" onclick="openFollowUp('${r.id}')">🔧 후속조치</button>`:''}
-      <button class="btn sm danger" style="margin-left:4px" onclick="deleteInsp('${r.id}')">삭제</button>
-    </td>
-  </tr>`;
-  }).join('');
+  const lq=histSearch.toLowerCase();
+  const filtered=INSPECTIONS.filter(r=>{
+    const matchSearch=!lq||
+      (r.cartId||'').toLowerCase().includes(lq)||
+      (r.inspector||'').toLowerCase().includes(lq)||
+      (r.date||'').includes(lq);
+    const matchNg=!histNgOnly||(r.result!=='OK');
+    const matchDate=!histDateFilter||r.date===histDateFilter;
+    return matchSearch&&matchNg&&matchDate;
+  });
+  const rows=filtered.slice(0,500).map(buildInspRow).join('');
   return `
   <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
-    <input id="histSearchInp" style="flex:1;min-width:180px;padding:9px 12px;border:1px solid var(--bd);border-radius:9px;font-size:14px;background:#ffffff;color:#0f172a" placeholder="🔍 대차번호·FRT·RR·날짜·점검자 검색…" value="${esc(histSearch)}" oninput="histSearch=this.value;renderInsp()">
-    <button class="btn${histNgOnly?' danger':''}" onclick="histNgOnly=!histNgOnly;renderInsp()" style="${histNgOnly?'':''}">
+    <input id="histSearchInp" style="flex:1;min-width:180px;padding:9px 12px;border:1px solid var(--bd);border-radius:9px;font-size:14px;background:#ffffff;color:#0f172a" placeholder="🔍 대차번호·점검자 검색…" value="${esc(histSearch)}" oninput="filterInspRows()">
+    <input id="histDateInp" type="date" value="${histDateFilter}" onchange="filterInspRows()" style="padding:9px 10px;border:1px solid var(--bd);border-radius:9px;font-size:14px;background:#ffffff;color:#0f172a">
+    <button class="btn${histNgOnly?' danger':''}" onclick="histNgOnly=!histNgOnly;filterInspRows()">
       ❌ NG만 보기${ngTotal>0?` <span style="background:var(--ng);color:#fff;font-size:11px;padding:2px 7px;border-radius:10px;margin-left:4px">${ngTotal}</span>`:''}
     </button>
     <button class="btn" style="background:var(--warnbg);color:var(--warn);border-color:var(--warn);white-space:nowrap" onclick="autoRegFrameMoves()">🔩 프레임이상 입출고 일괄등록</button>
