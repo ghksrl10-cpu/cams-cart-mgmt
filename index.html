@@ -1372,6 +1372,7 @@ async function clearOtherMoves(){
 
 async function deleteMove(id){
   const m=MOVEMENTS.find(r=>r.id===id); if(!m) return;
+  if(!checkAdmin()) return;
   if(!confirm(`[${m.type}] ${m.cartId} (${m.date})\n이 항목을 삭제하시겠습니까?\n\n⚠️ 복구 불가`)) return;
   try{
     await db.collection('movements').doc(id).delete();
