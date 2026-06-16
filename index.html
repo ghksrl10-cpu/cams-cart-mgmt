@@ -1326,7 +1326,7 @@ function buildMoveHist(){
     const repairBtn=isWait
       ?`<button class="btn sm" style="background:var(--okbg);color:var(--ok);border-color:var(--ok)" onclick="repairMove('${r.id}','${r.cartId}')">✅ 수리완료</button>`
       :'';
-    const delBtn=`<button class="btn sm danger" onclick="deleteMove('${r.id}')" title="삭제">🗑</button>`;
+    const delBtn=`<button class="btn sm danger" onclick="deleteMove('${r.id}')">삭제</button>`;
     return `<tr>
     <td>${r.date}</td>
     <td><b>${r.cartId}</b></td>
