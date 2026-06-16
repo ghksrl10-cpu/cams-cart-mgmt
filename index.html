@@ -1053,7 +1053,7 @@ function buildInspHist(){
   }).join('');
   return `
   <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
-    <input id="histSearchInp" style="flex:1;min-width:180px;padding:9px 12px;border:1px solid var(--bd);border-radius:9px;font-size:14px;background:#1a1d24;color:#f1f5f9" placeholder="🔍 대차번호·FRT·RR·날짜·점검자 검색…" value="${esc(histSearch)}" oninput="histSearch=this.value;renderInsp()">
+    <input id="histSearchInp" style="flex:1;min-width:180px;padding:9px 12px;border:1px solid var(--bd);border-radius:9px;font-size:14px;background:#ffffff;color:#0f172a" placeholder="🔍 대차번호·FRT·RR·날짜·점검자 검색…" value="${esc(histSearch)}" oninput="histSearch=this.value;renderInsp()">
     <button class="btn${histNgOnly?' danger':''}" onclick="histNgOnly=!histNgOnly;renderInsp()" style="${histNgOnly?'':''}">
       ❌ NG만 보기${ngTotal>0?` <span style="background:var(--ng);color:#fff;font-size:11px;padding:2px 7px;border-radius:10px;margin-left:4px">${ngTotal}</span>`:''}
     </button>
