@@ -1074,15 +1074,13 @@ function filterInspRows(){
 
 function buildInspHist(){
   const ngTotal=INSPECTIONS.filter(r=>r.result!=='OK').length;
-  // 잠금 상태에서는 NG만 강제 표시
-  const forceNg=!inspUnlocked;
   const lq=inspUnlocked?histSearch.toLowerCase():'';
   const filtered=INSPECTIONS.filter(r=>{
     const matchSearch=!lq||
       (r.cartId||'').toLowerCase().includes(lq)||
       (r.inspector||'').toLowerCase().includes(lq)||
       (r.date||'').includes(lq);
-    const matchNg=(forceNg||histNgOnly)?(r.result!=='OK'):true;
+    const matchNg=histNgOnly?(r.result!=='OK'):true;
     const matchDate=!histDateFilter||r.date===histDateFilter;
     return matchSearch&&matchNg&&matchDate;
   });
