@@ -1044,11 +1044,11 @@ function buildInspRow(r){
   <td>${r.replaced?'<span class="badge st-blue">🔧 완료</span>':'<span class="badge st-mut">—</span>'}</td>
   <td style="color:var(--mut);font-size:12px">${r.memo||'—'}</td>
   <td>${r.photos&&r.photos.length?r.photos.map(p=>`<img src="${p.url}" onclick="viewImg('${p.url}')" style="width:56px;height:42px;object-fit:cover;border-radius:5px;border:1px solid var(--bd);cursor:pointer;margin:2px">`).join(''):'—'}</td>
-  <td style="white-space:nowrap;display:flex;gap:4px;flex-wrap:wrap">
+  <td><div style="display:flex;gap:4px;flex-wrap:wrap;min-width:80px">
     ${isNG?`<button class="btn sm" style="background:var(--warnbg);color:var(--warn);border-color:var(--warn)" onclick="openFollowUp('${r.id}')">🔧 후속조치</button>`:''}
     ${inspUnlocked?`<button class="btn sm" onclick="openEditInsp('${r.id}')">수정</button>`:''}
     ${inspUnlocked?`<button class="btn sm danger" onclick="deleteInsp('${r.id}')">삭제</button>`:''}
-  </td>
+  </div></td>
 </tr>`;
 }
 
